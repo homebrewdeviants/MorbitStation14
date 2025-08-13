@@ -39,7 +39,7 @@ namespace Content.Shared.Humanoid
         /// <param name="species">The species prototype.</param>
         /// <param name="gender">The gender of the character.</param>
         /// <returns>A random character name.</returns>
-        private string GenerateName(SpeciesPrototype species, Gender? gender = null)
+        public string GenerateName(SpeciesPrototype species, Gender? gender = null)
         {
             var nameScheme = species.NameScheme;
             var datasets = species.NameDatasets;
