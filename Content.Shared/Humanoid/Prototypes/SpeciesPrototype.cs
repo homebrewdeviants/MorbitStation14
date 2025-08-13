@@ -131,11 +131,3 @@ public sealed partial class SpeciesPrototype : IPrototype
     [DataField]
     public int MaxAge = 120;
 }
-
-public enum SpeciesNaming : byte
-{
-    First,
-    FirstLast,
-    FirstDashFirst,
-    TheFirstofLast,
-}
