@@ -1,5 +1,6 @@
 using Content.Shared.Dataset;
 using Content.Shared.Humanoid.Markings;
+using Content.Shared.Morbit.Names.Prototypes;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Serialization.TypeSerializers.Implementations.Custom.Prototype;
 
@@ -83,17 +84,24 @@ public sealed partial class SpeciesPrototype : IPrototype
     [DataField(required: true)]
     public HumanoidSkinColor SkinColoration { get; private set; }
 
-    [DataField]
-    public ProtoId<LocalizedDatasetPrototype> MaleFirstNames { get; private set; } = "NamesFirstMale";
+    // MORBIT START
+    // Removed old Name-related fields
 
+    /// <summary>
+    /// The ID of a NameSchemePrototype used for naming characters of this species.
+    /// </summary>
     [DataField]
-    public ProtoId<LocalizedDatasetPrototype> FemaleFirstNames { get; private set; } = "NamesFirstFemale";
+    public ProtoId<NameSchemePrototype> NameScheme;
 
+    /// <summary>
+    /// A list of datasets used in generating names for a character of this species.
+    /// Most species require a first, firstMale, firstFemale, and usually a last dataset.
+    /// Keep in mind that names are usually gender-based and not sex-based, so even Unsexed
+    /// species need all three "first name" datasets.
+    /// </summary>
     [DataField]
-    public ProtoId<LocalizedDatasetPrototype> LastNames { get; private set; } = "NamesLast";
-
-    [DataField]
-    public SpeciesNaming Naming { get; private set; } = SpeciesNaming.FirstLast;
+    public Dictionary<string, List<ProtoId<LocalizedDatasetPrototype>>> NameDatasets = new();
+    // MORBIT END
 
     [DataField]
     public List<Sex> Sexes { get; private set; } = new() { Sex.Male, Sex.Female };
@@ -122,12 +130,4 @@ public sealed partial class SpeciesPrototype : IPrototype
     /// </summary>
     [DataField]
     public int MaxAge = 120;
-}
-
-public enum SpeciesNaming : byte
-{
-    First,
-    FirstLast,
-    FirstDashFirst,
-    TheFirstofLast,
 }

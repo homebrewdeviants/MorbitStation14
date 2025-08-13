@@ -8,6 +8,13 @@
   markingLimits: MobSlimeMarkingLimits
   dollPrototype: MobSlimePersonDummy
   skinColoration: Hues
+  # MORBIT: Remove old name fields, add NameScheme
+  nameScheme: FirstLast
+  nameDatasets:
+    first: [NamesFirstMale, NamesFirstFemale]
+    firstMale: [NamesFirstMale]
+    firstFemale: [NamesFirstFemale]
+    last: [NamesLast]
 
 - type: speciesBaseSprites
   id: MobSlimeSprites

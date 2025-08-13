@@ -4,6 +4,7 @@ using Content.Shared.Random.Helpers;
 using Robust.Shared.Random;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Enums;
+using Content.Shared.Morbit.Names;
 
 namespace Content.Shared.Humanoid
 {
@@ -16,6 +17,7 @@ namespace Content.Shared.Humanoid
 
         [Dependency] private readonly IRobustRandom _random = default!;
         [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
+        [Dependency] private readonly NameSchemeManager _nameScheme = default!;
 
         public string GetName(string species, Gender? gender = null)
         {
@@ -27,43 +29,28 @@ namespace Content.Shared.Humanoid
                 Log.Warning($"Unable to find species {species} for name, falling back to {FallbackSpecies}");
             }
 
-            switch (speciesProto.Naming)
-            {
-                case SpeciesNaming.First:
-                    return Loc.GetString("namepreset-first",
-                        ("first", GetFirstName(speciesProto, gender)));
-                case SpeciesNaming.TheFirstofLast:
-                    return Loc.GetString("namepreset-thefirstoflast",
-                        ("first", GetFirstName(speciesProto, gender)), ("last", GetLastName(speciesProto)));
-                case SpeciesNaming.FirstDashFirst:
-                    return Loc.GetString("namepreset-firstdashfirst",
-                        ("first1", GetFirstName(speciesProto, gender)), ("first2", GetFirstName(speciesProto, gender)));
-                case SpeciesNaming.FirstLast:
-                default:
-                    return Loc.GetString("namepreset-firstlast",
-                        ("first", GetFirstName(speciesProto, gender)), ("last", GetLastName(speciesProto)));
-            }
+            // MORBIT: NameScheme system
+            return GenerateName(speciesProto, gender);
         }
 
-        public string GetFirstName(SpeciesPrototype speciesProto, Gender? gender = null)
+        /// <summary>
+        ///     MORBIT: Generate a name based on the species's nameScheme.
+        /// </summary>
+        /// <param name="species">The species prototype.</param>
+        /// <param name="gender">The gender of the character.</param>
+        /// <returns>A random character name.</returns>
+        public string GenerateName(SpeciesPrototype species, Gender? gender = null)
         {
-            switch (gender)
-            {
-                case Gender.Male:
-                    return _random.Pick(_prototypeManager.Index(speciesProto.MaleFirstNames));
-                case Gender.Female:
-                    return _random.Pick(_prototypeManager.Index(speciesProto.FemaleFirstNames));
-                default:
-                    if (_random.Prob(0.5f))
-                        return _random.Pick(_prototypeManager.Index(speciesProto.MaleFirstNames));
-                    else
-                        return _random.Pick(_prototypeManager.Index(speciesProto.FemaleFirstNames));
-            }
-        }
+            var nameScheme = species.NameScheme;
+            var datasets = species.NameDatasets;
 
-        public string GetLastName(SpeciesPrototype speciesProto)
-        {
-            return _random.Pick(_prototypeManager.Index(speciesProto.LastNames));
+            var context = new NameSchemeContext()
+            {
+                Datasets = datasets,
+                Gender = gender,
+            };
+
+            return _nameScheme.GenerateName(nameScheme, context);
         }
     }
 }
