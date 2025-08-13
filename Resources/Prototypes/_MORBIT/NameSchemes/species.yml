@@ -1,0 +1,53 @@
+- type: nameScheme
+  id: GenderDependentFirst
+  parts:
+  - !type:GenderDependentPart
+      parts:
+        Male: !type:NameDatasetPart
+          dataset: firstMale
+        Female: !type:NameDatasetPart
+          dataset: firstFemale
+        Neuter: !type:NameDatasetPart
+          dataset: first
+
+- type: nameScheme
+  id: First
+  parts:
+  - !type:LocalizedTextPart
+    text: namepreset-first
+    args:
+      first: !type:NameSchemePrototypePart
+        id: GenderDependentFirst
+
+- type: nameScheme
+  id: FirstLast
+  parts:
+  - !type:LocalizedTextPart
+    text: namepreset-firstlast
+    args:
+      first: !type:NameSchemePrototypePart
+        id: GenderDependentFirst
+      last: !type:NameDatasetPart
+        dataset: last
+
+- type: nameScheme
+  id: FirstDashFirst
+  parts:
+  - !type:LocalizedTextPart
+    text: namepreset-firstdashfirst
+    args:
+      first1: !type:NameSchemePrototypePart
+        id: GenderDependentFirst
+      first2: !type:NameSchemePrototypePart
+        id: GenderDependentFirst
+
+- type: nameScheme
+  id: TheFirstofLast
+  parts:
+  - !type:LocalizedTextPart
+    text: namepreset-thefirstoflast
+    args:
+      first: !type:NameDatasetPart
+        dataset: first
+      last: !type:NameDatasetPart
+        dataset: last
