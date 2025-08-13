@@ -6,10 +6,15 @@
   sprites: MobSkeletonSprites
   defaultSkinTone: "#fff9e2"
   markingLimits: MobHumanMarkingLimits
-  maleFirstNames: NamesSkeletonFirst
-  femaleFirstNames: NamesSkeletonFirst
   dollPrototype: MobSkeletonPersonDummy
   skinColoration: TintedHues
+  # MORBIT: Remove old name fields, add NameScheme
+  nameScheme: FirstLast
+  nameDatasets:
+    first: [NamesSkeletonFirst]
+    firstMale: [NamesSkeletonFirst]
+    firstFemale: [NamesSkeletonFirst]
+    last: [NamesLast]
 
 - type: speciesBaseSprites
   id: MobSkeletonSprites

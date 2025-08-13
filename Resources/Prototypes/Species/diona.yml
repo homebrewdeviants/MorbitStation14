@@ -8,10 +8,13 @@
   markingLimits: MobDionaMarkingLimits
   dollPrototype: MobDionaDummy
   skinColoration: Hues
-  maleFirstNames: NamesDionaFirst
-  femaleFirstNames: NamesDionaFirst
-  lastNames: NamesDionaLast
-  naming: TheFirstofLast
+  # MORBIT: Remove old name fields, add NameScheme
+  nameScheme: TheFirstofLast
+  nameDatasets:
+    first: [NamesDionaFirst]
+    firstMale: [NamesDionaFirst]
+    firstFemale: [NamesDionaFirst]
+    last: [NamesDionaLast]
 
 - type: speciesBaseSprites
   id: MobDionaSprites

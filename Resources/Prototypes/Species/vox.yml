@@ -8,11 +8,14 @@
   dollPrototype: MobVoxDummy
   skinColoration: VoxFeathers
   defaultSkinTone: "#6c741d"
-  maleFirstNames: NamesVox
-  femaleFirstNames: NamesVox
-  naming: First
   sexes:
   - Unsexed
+  # MORBIT: Remove old name fields, add NameScheme
+  nameScheme: First
+  nameDatasets:
+    first: [NamesVox]
+    firstMale: [NamesVox]
+    firstFemale: [NamesVox]
 
 - type: speciesBaseSprites
   id: MobVoxSprites

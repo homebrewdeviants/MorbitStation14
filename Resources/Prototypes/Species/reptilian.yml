@@ -8,9 +8,12 @@
   markingLimits: MobReptilianMarkingLimits
   dollPrototype: MobReptilianDummy
   skinColoration: Hues
-  maleFirstNames: NamesReptilianMale
-  femaleFirstNames: NamesReptilianFemale
-  naming: FirstDashFirst
+  # MORBIT: Remove old name fields, add NameScheme
+  nameScheme: FirstDashFirst
+  nameDatasets:
+    first: [NamesReptilianMale, NamesReptilianFemale]
+    firstMale: [NamesReptilianMale]
+    firstFemale: [NamesReptilianFemale]
 
 - type: speciesBaseSprites
   id: MobReptilianSprites
