@@ -1,0 +1,12 @@
+- type: weightedRandom
+  id: AnyRandomMotif
+  weights:
+    Cloth: 1
+    Crystal: 1
+    Fire: 1
+    Light: 1
+    Meat: 1
+    Rain: 1
+    Space: 1
+    Smoke: 1
+    Water: 1

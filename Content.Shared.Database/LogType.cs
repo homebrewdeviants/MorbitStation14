@@ -478,4 +478,13 @@ public enum LogType
     /// Events relating to midi playback.
     /// </summary>
     Instrument = 103,
+
+    // MORBIT START
+
+    /// <summary>
+    /// Events related to scraps, scrap production, and scrap sensitivity.
+    /// </summary>
+    Scrap = 104,
+
+    // MORBIT END
 }
