@@ -1,5 +1,6 @@
 using Content.Server.Administration.Logs;
 using Content.Shared.Eye;
+using Content.Shared.Morbit.Motifs;
 using Content.Shared.Morbit.Scraps.Components;
 using Content.Shared.Morbit.Scraps.EntitySystems;
 using Robust.Server.GameObjects;
@@ -29,6 +30,14 @@ public sealed partial class ScrapSystem : SharedScrapSystem
         SubscribeLocalEvent<ScrapSensitiveComponent, GetVisMaskEvent>(OnSensitiveGetVisMask);
         SubscribeLocalEvent<ScrapSensitiveComponent, ComponentStartup>(OnSensitiveStartup);
         SubscribeLocalEvent<ScrapSensitiveComponent, ComponentShutdown>(OnSensitiveShutdown);
+
+        _prototype.PrototypesReloaded += OnPrototypesReloaded;
+    }
+
+    private void OnPrototypesReloaded(PrototypesReloadedEventArgs args)
+    {
+        if (args.WasModified<MotifPrototype>())
+            UpdateMotifs();
     }
 
     // If you are a scrap, you can always see scraps. I guess
