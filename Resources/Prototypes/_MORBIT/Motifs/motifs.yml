@@ -4,43 +4,69 @@
   id: Cloth
   name: motif-type-cloth
   color: "#c5b28a"
+  scrapProperties:
+    outlineColor: "#c5b28a"
 
 - type: motif
   id: Crystal
   name: motif-type-crystal
   color: "#b12dda"
+  scrapProperties:
+    outlineColor: "#6c3bf1"
+    baseColor: "#b12dda"
 
 - type: motif
   id: Fire
   name: motif-type-fire
   color: "#ff6b16"
+  scrapProperties:
+    outlineColor: "#ff6b16"
+    baseColor: "#ffab2d"
 
 - type: motif
   id: Light
   name: motif-type-light
   color: "#ffef5d"
+  scrapProperties:
+    outlineColor: "#fffacb"
+    baseColor: "#ffef5d"
 
 - type: motif
   id: Meat
   name: motif-type-meat
   color: "#b61717"
+  scrapProperties:
+    outlineColor: "#b61717"
+    baseColor: "#86051b"
 
 - type: motif
   id: Rain
   name: motif-type-rain
   color: "#5c6ea1"
+  scrapProperties:
+    outlineColor: "#454a86"
+    baseColor: "#5c6ea1"
 
 - type: motif
   id: Space
   name: motif-type-space
   color: "#4c3383"
+  scrapProperties:
+    outlineColor: "#fffd81"
+    baseColor: "#4c3383"
 
 - type: motif
   id: Smoke
   name: motif-type-smoke
   color: "#635e68"
+  scrapProperties:
+    outlineColor: "#443e50"
+    baseColor: "#635e68"
 
 - type: motif
   id: Water
   name: motif-type-water
   color: "#75b1f0"
+  scrapProperties:
+    outlineColor: "#75b1f0"
+    baseColor: "#4970db"

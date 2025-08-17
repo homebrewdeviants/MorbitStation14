@@ -1,0 +1,77 @@
+- type: entity
+  parent: BaseItem
+  id: ScrapBase
+  name: scrap
+  components:
+  - type: Appearance
+  - type: Scrap
+  - type: ScrapVisuals
+    colorInterpolationAmount: 0.25
+  - type: FloatingVisuals
+  - type: Sprite
+    sprite: _MORBIT/Objects/Scrapmancy/scrap.rsi
+    color: "#ffffffdd"
+    layers:
+    - map: ["base"]
+      state: default-base
+    - map: ["highlight"]
+      state: default-highlight
+    - map: ["outline"]
+      state: outline
+      shader: unshaded
+
+- type: entity
+  parent: ScrapBase
+  id: ScrapCrystal
+  suffix: crystal
+  components:
+  - type: Scrap
+    motifs:
+    - Crystal
+
+- type: entity
+  parent: ScrapBase
+  id: ScrapLight
+  suffix: light
+  components:
+  - type: Scrap
+    motifs:
+    - Light
+
+- type: entity
+  parent: ScrapBase
+  id: ScrapMeat
+  suffix: meat
+  components:
+  - type: Scrap
+    motifs:
+    - Meat
+
+- type: entity
+  parent: ScrapBase
+  id: ScrapSpace
+  suffix: space
+  components:
+  - type: Scrap
+    motifs:
+    - Space
+
+- type: entity
+  parent: ScrapBase
+  id: ScrapWater
+  suffix: water
+  components:
+  - type: Scrap
+    motifs:
+    - Water
+
+- type: entity
+  parent: ScrapBase
+  id: ScrapAmalgam
+  suffix: amalgam
+  components:
+  - type: Scrap
+    motifs:
+    - Meat
+    - Space
+    - Water

@@ -33,6 +33,37 @@ public sealed partial class MotifPrototype : IPrototype
     /// <summary>
     /// A color associated with the motif.
     /// </summary>
+    [DataField("color")]
+    public Color AssociatedColor = Color.White;
+
     [DataField]
-    public Color Color = Color.White;
+    public ScrapVisualProperties ScrapProperties = new();
+}
+
+[DataDefinition]
+public sealed partial class ScrapVisualProperties
+{
+    /// <summary>
+    /// The outline color of the motif in scrap form.
+    /// </summary>
+    [DataField]
+    public Color OutlineColor = Color.White;
+
+    /// <summary>
+    /// The base color of the motif in scrap form.
+    /// </summary>
+    [DataField]
+    public Color BaseColor = Color.White;
+
+    /// <summary>
+    /// The path of the RSI file containing scrap layer states for this motif.
+    /// </summary>
+    [DataField]
+    public string Sprite = "_MORBIT/Objects/Scrapmancy/scrap.rsi";
+
+    /// <summary>
+    /// The state name of this motif's scrap form.
+    /// </summary>
+    [DataField]
+    public string State = "default";
 }
