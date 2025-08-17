@@ -21,6 +21,12 @@ public sealed partial class ScrapSystem
         _eye.RefreshVisibilityMask(ent.Owner);
     }
 
+    /// <summary>
+    ///     Sets the scrap sensitivity level of an entity. This gives them ScrapSensitiveComponent if they
+    ///     do not already have it. If the sensitivity is None, it will remove ScrapSensitiveComponent instead.
+    /// </summary>
+    /// <param name="uid">The entity to set scrap sensitivity level of.</param>
+    /// <param name="sensitivity">The sensitivity level of the entity.</param>
     public void SetScrapSensitivity(EntityUid uid, ScrapSensitivity sensitivity)
     {
         if (sensitivity == ScrapSensitivity.None)
