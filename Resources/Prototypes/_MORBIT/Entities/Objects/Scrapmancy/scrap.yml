@@ -6,7 +6,7 @@
   - type: Appearance
   - type: Scrap
   - type: ScrapVisuals
-    colorInterpolationAmount: 0.25
+    colorInterpolationAmount: 0.3
   - type: FloatingVisuals
   - type: Sprite
     sprite: _MORBIT/Objects/Scrapmancy/scrap.rsi

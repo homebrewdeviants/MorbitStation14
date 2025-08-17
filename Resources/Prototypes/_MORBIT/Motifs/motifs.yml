@@ -36,8 +36,8 @@
   name: motif-type-meat
   color: "#b61717"
   scrapProperties:
-    outlineColor: "#b61717"
-    baseColor: "#86051b"
+    outlineColor: "#f1947a"
+    baseColor: "#d40d0d"
 
 - type: motif
   id: Rain
