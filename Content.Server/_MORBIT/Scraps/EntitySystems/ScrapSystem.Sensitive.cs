@@ -1,5 +1,6 @@
 using Content.Shared.Eye;
 using Content.Shared.Morbit.Scraps.Components;
+using JetBrains.Annotations;
 
 namespace Content.Server.Morbit.Scraps.EntitySystems;
 
@@ -7,7 +8,7 @@ public sealed partial class ScrapSystem
 {
     private void OnSensitiveGetVisMask(Entity<ScrapSensitiveComponent> ent, ref GetVisMaskEvent args)
     {
-        if ((ent.Comp.Sensitivity & ScrapSensitivity.See) != 0)
+        if (HasScrapSensitivity(ent!, ScrapSensitivity.See))
             args.VisibilityMask |= (int)VisibilityFlags.Scrap;
     }
 
@@ -39,4 +40,14 @@ public sealed partial class ScrapSystem
 
         _eye.RefreshVisibilityMask(uid);
     }
+
+    /// <summary>
+    ///     Check if a given entity has a certain scrap sensitivity level.
+    /// </summary>
+    /// <param name="ent">The entity to check.</param>
+    /// <param name="flags">The sensitivity level to check.</param>
+    /// <returns>Whether or not the entity has this level of scrap sensitivity.</returns>
+    [PublicAPI]
+    public bool HasScrapSensitivity(Entity<ScrapSensitiveComponent?> ent, ScrapSensitivity flags)
+        => Resolve(ent, ref ent.Comp, false) && (ent.Comp.Sensitivity & flags) != 0;
 }
