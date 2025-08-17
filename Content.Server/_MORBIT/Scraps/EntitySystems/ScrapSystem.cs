@@ -56,13 +56,13 @@ public sealed partial class ScrapSystem : SharedScrapSystem
 
     private void RemoveFromScrapLayer(EntityUid uid)
     {
-        if (TryComp<VisibilityComponent>(uid, out var visibility))
-        {
-            var visEnt = (uid, visibility);
-            _visibility.RemoveLayer(visEnt, (int)VisibilityFlags.Scrap, refresh: false);
-            _visibility.AddLayer(visEnt, (int)VisibilityFlags.Normal, refresh: false);
-            _visibility.RefreshVisibility(uid, visibilityComponent: visibility);
-        }
+        if (!TryComp<VisibilityComponent>(uid, out var visibility))
+            return;
+
+        var visEnt = (uid, visibility);
+        _visibility.RemoveLayer(visEnt, (int)VisibilityFlags.Scrap, refresh: false);
+        _visibility.AddLayer(visEnt, (int)VisibilityFlags.Normal, refresh: false);
+        _visibility.RefreshVisibility(uid, visibilityComponent: visibility);
 
         _eye.RefreshVisibilityMask(uid);
     }
