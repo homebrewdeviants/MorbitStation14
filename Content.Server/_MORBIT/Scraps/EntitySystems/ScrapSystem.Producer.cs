@@ -15,7 +15,6 @@ public sealed partial class ScrapSystem
 {
     [Dependency] private readonly IRobustRandom _random = default!;
 
-    private const int MaxAddMotifAttempts = 5;
     private static readonly ProtoId<WeightedRandomPrototype> DefaultPool = "AnyRandomMotif";
     private IEnumerable<string>? _motifs = null;
 
@@ -78,6 +77,7 @@ public sealed partial class ScrapSystem
 
         for (var i = 0; i < count; i++)
         {
+            // No motifs left to take
             if (!_random.TryPickAndTake(weights, out var motif))
                 return;
 
