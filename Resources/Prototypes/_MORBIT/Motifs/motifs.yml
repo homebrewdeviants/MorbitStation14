@@ -8,7 +8,6 @@
   - key: base
     color: "#c5b28a"
   - key: highlight
-    color: "#ffffff11"
   - key: outline
     color: "#af8e69"
 
@@ -20,7 +19,6 @@
   - key: base
     color: "#b12dda"
   - key: highlight
-    color: "#ffffff11"
   - key: outline
     color: "#6c3bf1"
 
@@ -32,7 +30,6 @@
   - key: base
     color: "#ffab2d"
   - key: highlight
-    color: "#ffffff11"
   - key: outline
     color: "#ff6b16"
 
@@ -44,7 +41,6 @@
   - key: base
     color: "#ffef5d"
   - key: highlight
-    color: "#ffffff11"
   - key: outline
     color: "#fffacb"
 
@@ -60,7 +56,6 @@
     state: striped
     color: "#7d1111"
   - key: highlight
-    color: "#ffffff11"
     state: striped
   - key: outline
     color: "#deb4a2"
@@ -73,7 +68,6 @@
   - key: base
     color: "#5c6ea1"
   - key: highlight
-    color: "#ffffff11"
   - key: outline
     color: "#454a86"
 
@@ -85,7 +79,6 @@
   - key: base
     color: "#4c3383"
   - key: highlight
-    color: "#ffffff11"
   - key: outline
     color: "#fffd81"
 
@@ -102,7 +95,6 @@
     color: "#7d7b81"
   - key: highlight
     state: striped
-    color: "#ffffff11"
   - key: outline
     color: "#b4adc2"
 
@@ -114,6 +106,5 @@
   - key: base
     color: "#4970db"
   - key: highlight
-    color: "#ffffff11"
   - key: outline
     color: "#75b1f0"
