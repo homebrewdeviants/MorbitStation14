@@ -1,6 +1,8 @@
 
 using System.Linq;
+using Content.Shared.Examine;
 using Content.Shared.Eye;
+using Content.Shared.Localizations;
 using Content.Shared.Morbit.Scraps;
 using Content.Shared.Morbit.Scraps.Components;
 using Robust.Server.GameObjects;
@@ -28,6 +30,27 @@ public sealed partial class ScrapSystem
     private void OnScrapShutdown(Entity<ScrapComponent> ent, ref ComponentShutdown args)
     {
         RemoveFromScrapLayer(ent);
+    }
+
+    private void OnScrapExamined(Entity<ScrapComponent> ent, ref ExaminedEvent args)
+    {
+        if (ent.Comp.Motifs.Count == 0)
+            return;
+
+        var motifs = new List<string>();
+        foreach (var id in ent.Comp.Motifs)
+        {
+            if (!_prototype.TryIndex(id, out var motif))
+                continue;
+
+            var motifString = Loc.GetString("scrap-component-motif",
+                ("motif", Loc.GetString(motif.Name)),
+                ("color", motif.AssociatedColor.ToHex()));
+            motifs.Add(motifString);
+        }
+
+        var motifList = ContentLocalizationManager.FormatList(motifs);
+        args.PushMarkup(Loc.GetString("scrap-component-examine-text", ("motifs", motifList)));
     }
 
     private void UpdateScrapAppearance(Entity<ScrapComponent> ent)

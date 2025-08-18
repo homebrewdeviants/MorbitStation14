@@ -1,4 +1,5 @@
 using Content.Server.Administration.Logs;
+using Content.Shared.Examine;
 using Content.Shared.Eye;
 using Content.Shared.Morbit.Motifs;
 using Content.Shared.Morbit.Scraps.Components;
@@ -24,6 +25,7 @@ public sealed partial class ScrapSystem : SharedScrapSystem
         SubscribeLocalEvent<ScrapComponent, GetVisMaskEvent>(OnScrapGetVisMask);
         SubscribeLocalEvent<ScrapComponent, ComponentStartup>(OnScrapStartup);
         SubscribeLocalEvent<ScrapComponent, ComponentShutdown>(OnScrapShutdown);
+        SubscribeLocalEvent<ScrapComponent, ExaminedEvent>(OnScrapExamined);
 
         SubscribeLocalEvent<ScrapProducerComponent, ComponentStartup>(OnProducerStartup);
 
