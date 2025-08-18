@@ -15,6 +15,13 @@ namespace Content.Shared.Morbit.Scraps.Components;
 public sealed partial class ScrapComponent : Component
 {
     /// <summary>
+    /// The opacity of additional colors of the scrap.
+    /// TODO: Find out a way to put this in ScapVisualsComponent without everything exploding
+    /// </summary>
+    [DataField]
+    public float ColorInterpolationAmount = 0.4f;
+
+    /// <summary>
     ///     Power determines the potency of a scrap - how much energy it provides, how strong its effects are.
     ///     Scrap power is generally determined upon creation by the complexity/importance of the memories within them.
     /// </summary>

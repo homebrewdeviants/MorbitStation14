@@ -5,8 +5,6 @@ namespace Content.Shared.Morbit.Scraps;
 [Serializable, NetSerializable]
 public enum ScrapVisuals
 {
-    Rsi,
-    State,
+    MotifId,
     Colors,
-    OutlineColors,
 }

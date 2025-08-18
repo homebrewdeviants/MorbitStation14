@@ -1,13 +1,18 @@
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using Content.Client.Morbit.Scraps.Components;
+using Content.Shared.Morbit.Motifs;
 using Content.Shared.Morbit.Scraps;
 using Robust.Client.GameObjects;
+using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 
 namespace Content.Client.Morbit.Scraps.EntitySystems;
 
 public sealed class ScrapVisualizerSystem : VisualizerSystem<ScrapVisualsComponent>
 {
+    [Dependency] private readonly IPrototypeManager _prototype = default!;
+
     protected override void OnAppearanceChange(EntityUid uid,
         ScrapVisualsComponent component,
         ref AppearanceChangeEvent args)
@@ -28,21 +33,26 @@ public sealed class ScrapVisualizerSystem : VisualizerSystem<ScrapVisualsCompone
     private void UpdateSprites(Entity<SpriteComponent?> ent, ScrapVisualsComponent component)
     {
         if (!Resolve(ent.Owner, ref ent.Comp, false)
-            || !AppearanceSystem.TryGetData<string>(ent.Owner, ScrapVisuals.Rsi, out var rsi)
-            || !AppearanceSystem.TryGetData<string>(ent.Owner, ScrapVisuals.State, out var state))
+            || !AppearanceSystem.TryGetData<string>(ent.Owner, ScrapVisuals.MotifId, out var motifId)
+            || component.LastMotifId == motifId
+            || !_prototype.TryIndex<MotifPrototype>(motifId, out var motif))
             return;
 
-        var rsiPath = new ResPath(rsi);
+        var layerCount = ent.Comp.AllLayers.Count();
+        for (var i = 0; i < layerCount; i++)
+            SpriteSystem.RemoveLayer(ent, 0, false);
 
-        SpriteSystem.LayerSetRsi(ent,
-            key: component.BaseKey,
-            rsi: rsiPath,
-            state: state + component.BaseLayerSuffix);
+        var index = 0;
+        foreach (var layer in motif.ScrapLayers)
+        {
+            var rsiPath = new ResPath(layer.Sprite);
+            SpriteSystem.AddBlankLayer(ent!, index);
+            SpriteSystem.LayerMapSet(ent, key: layer.Key, index);
+            SpriteSystem.LayerSetRsi(ent, key: layer.Key, rsi: rsiPath, state: $"{layer.State}-{layer.Key}");
+            index++;
+        }
 
-        SpriteSystem.LayerSetRsi(ent,
-            key: component.HighlightKey,
-            rsi: rsiPath,
-            state: state + component.HighlightLayerSuffix);
+        component.LastMotifId = motifId;
     }
 
     private void UpdateColors(Entity<SpriteComponent?> ent, ScrapVisualsComponent component)
@@ -50,18 +60,22 @@ public sealed class ScrapVisualizerSystem : VisualizerSystem<ScrapVisualsCompone
         if (!Resolve(ent.Owner, ref ent.Comp, false))
             return;
 
-        if (AppearanceSystem.TryGetData<List<Color>>(ent.Owner, ScrapVisuals.Colors, out var colors))
+        if (AppearanceSystem.TryGetData<Dictionary<string, string>>(ent.Owner,
+            ScrapVisuals.Colors,
+            out var colors))
         {
-            var color = GetScrapColor(colors, component.ColorInterpolationAmount);
-            SpriteSystem.LayerSetColor(ent, key: component.BaseKey, color);
-        }
+            var motifColors = colors
+                .ToDictionary(p => p.Key, p => p.Value
+                    .Split("|")
+                    .Select(c => Color.FromHex(c)));
 
-        if (AppearanceSystem.TryGetData<List<Color>>(ent.Owner, ScrapVisuals.OutlineColors, out var outlineColors))
-        {
-            var outlineColor = GetScrapColor(outlineColors, component.ColorInterpolationAmount);
-            SpriteSystem.LayerSetColor(ent, key: component.OutlineKey, outlineColor);
+            foreach (var pair in motifColors)
+            {
+                var color = GetScrapColor(motifColors: pair.Value,
+                    interpolationAmount: component.ColorInterpolationAmount);
+                SpriteSystem.LayerSetColor(ent, key: pair.Key, color);
+            }
         }
-
     }
 
     private static Color GetScrapColor(IEnumerable<Color> motifColors, float interpolationAmount = 0.4f)

@@ -8,13 +8,22 @@
   },
   "states": [
     {
-      "name": "outline"
-    },
-    {
       "name": "default-base"
     },
     {
       "name": "default-highlight"
+    },
+    {
+      "name": "default-outline"
+    },
+    {
+      "name": "striped-base"
+    },
+    {
+      "name": "striped-secondary"
+    },
+    {
+      "name": "striped-highlight"
     }
   ]
 }

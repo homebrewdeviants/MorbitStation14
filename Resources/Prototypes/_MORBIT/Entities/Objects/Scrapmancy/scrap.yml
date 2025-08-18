@@ -6,18 +6,18 @@
   - type: Appearance
   - type: Scrap
   - type: ScrapVisuals
-    colorInterpolationAmount: 0.3
+    colorInterpolationAmount: 0.4
   - type: FloatingVisuals
   - type: Sprite
     sprite: _MORBIT/Objects/Scrapmancy/scrap.rsi
-    color: "#ffffffdd"
+    color: "#ffffffff"
     layers:
     - map: ["base"]
       state: default-base
     - map: ["highlight"]
       state: default-highlight
     - map: ["outline"]
-      state: outline
+      state: default-outline
       shader: unshaded
 
 - type: entity
@@ -46,6 +46,15 @@
   - type: Scrap
     motifs:
     - Meat
+
+- type: entity
+  parent: ScrapBase
+  id: ScrapSmoke
+  suffix: smoke
+  components:
+  - type: Scrap
+    motifs:
+    - Smoke
 
 - type: entity
   parent: ScrapBase

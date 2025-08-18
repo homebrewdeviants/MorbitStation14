@@ -4,69 +4,116 @@
   id: Cloth
   name: motif-type-cloth
   color: "#c5b28a"
-  scrapProperties:
-    outlineColor: "#c5b28a"
+  scrapLayers:
+  - key: base
+    color: "#c5b28a"
+  - key: highlight
+    color: "#ffffff11"
+  - key: outline
+    color: "#af8e69"
 
 - type: motif
   id: Crystal
   name: motif-type-crystal
   color: "#b12dda"
-  scrapProperties:
-    outlineColor: "#6c3bf1"
-    baseColor: "#b12dda"
+  scrapLayers:
+  - key: base
+    color: "#b12dda"
+  - key: highlight
+    color: "#ffffff11"
+  - key: outline
+    color: "#6c3bf1"
 
 - type: motif
   id: Fire
   name: motif-type-fire
   color: "#ff6b16"
-  scrapProperties:
-    outlineColor: "#ff6b16"
-    baseColor: "#ffab2d"
+  scrapLayers:
+  - key: base
+    color: "#ffab2d"
+  - key: highlight
+    color: "#ffffff11"
+  - key: outline
+    color: "#ff6b16"
 
 - type: motif
   id: Light
   name: motif-type-light
   color: "#ffef5d"
-  scrapProperties:
-    outlineColor: "#fffacb"
-    baseColor: "#ffef5d"
+  scrapLayers:
+  - key: base
+    color: "#ffef5d"
+  - key: highlight
+    color: "#ffffff11"
+  - key: outline
+    color: "#fffacb"
 
 - type: motif
   id: Meat
   name: motif-type-meat
   color: "#b61717"
-  scrapProperties:
-    outlineColor: "#f1947a"
-    baseColor: "#d40d0d"
+  scrapLayers:
+  - key: base
+    state: striped
+    color: "#c81616"
+  - key: secondary
+    state: striped
+    color: "#7d1111"
+  - key: highlight
+    color: "#ffffff11"
+    state: striped
+  - key: outline
+    color: "#deb4a2"
 
 - type: motif
   id: Rain
   name: motif-type-rain
   color: "#5c6ea1"
-  scrapProperties:
-    outlineColor: "#454a86"
-    baseColor: "#5c6ea1"
+  scrapLayers:
+  - key: base
+    color: "#5c6ea1"
+  - key: highlight
+    color: "#ffffff11"
+  - key: outline
+    color: "#454a86"
 
 - type: motif
   id: Space
   name: motif-type-space
   color: "#4c3383"
-  scrapProperties:
-    outlineColor: "#fffd81"
-    baseColor: "#4c3383"
+  scrapLayers:
+  - key: base
+    color: "#4c3383"
+  - key: highlight
+    color: "#ffffff11"
+  - key: outline
+    color: "#fffd81"
 
 - type: motif
   id: Smoke
   name: motif-type-smoke
   color: "#635e68"
-  scrapProperties:
-    outlineColor: "#443e50"
-    baseColor: "#635e68"
+  scrapLayers:
+  - key: base
+    state: striped
+    color: "#635e68"
+  - key: secondary
+    state: striped
+    color: "#7d7b81"
+  - key: highlight
+    state: striped
+    color: "#ffffff11"
+  - key: outline
+    color: "#b4adc2"
 
 - type: motif
   id: Water
   name: motif-type-water
   color: "#75b1f0"
-  scrapProperties:
-    outlineColor: "#75b1f0"
-    baseColor: "#4970db"
+  scrapLayers:
+  - key: base
+    color: "#4970db"
+  - key: highlight
+    color: "#ffffff11"
+  - key: outline
+    color: "#75b1f0"

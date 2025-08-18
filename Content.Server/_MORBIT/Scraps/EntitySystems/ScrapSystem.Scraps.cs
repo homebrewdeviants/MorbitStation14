@@ -4,6 +4,7 @@ using Content.Shared.Eye;
 using Content.Shared.Morbit.Scraps;
 using Content.Shared.Morbit.Scraps.Components;
 using Robust.Server.GameObjects;
+using Robust.Shared.Utility;
 
 namespace Content.Server.Morbit.Scraps.EntitySystems;
 
@@ -31,30 +32,34 @@ public sealed partial class ScrapSystem
 
     private void UpdateScrapAppearance(Entity<ScrapComponent> ent)
     {
-        var motifs = ent.Comp.Motifs;
+        UpdateScrapSprites(ent);
+        UpdateScrapColors(ent);
+    }
 
-        if (motifs.Any())
+    private void UpdateScrapSprites(Entity<ScrapComponent> ent)
+    {
+        var motifs = ent.Comp.Motifs;
+        if (motifs.Count != 0)
         {
             var firstMotif = motifs.First();
-            if (_prototype.TryIndex(firstMotif, out var motif))
-            {
-                _appearance.SetData(ent.Owner, ScrapVisuals.Rsi, motif.ScrapProperties.Sprite);
-                _appearance.SetData(ent.Owner, ScrapVisuals.State, motif.ScrapProperties.State);
-            }
+            _appearance.SetData(ent.Owner, ScrapVisuals.MotifId, (string)firstMotif);
         }
+    }
 
-        var colors = new List<Color>();
-        var outlineColors = new List<Color>();
-        foreach (var id in motifs)
+    private void UpdateScrapColors(Entity<ScrapComponent> ent)
+    {
+        var colors = new Dictionary<string, List<string>>();
+        foreach (var id in ent.Comp.Motifs)
         {
             if (!_prototype.TryIndex(id, out var motif))
                 continue;
 
-            colors.Add(motif.ScrapProperties.BaseColor);
-            outlineColors.Add(motif.ScrapProperties.OutlineColor);
+            foreach (var layer in motif.ScrapLayers)
+                colors.GetOrNew(layer.Key).Add(layer.Color.ToHex());
         }
 
-        _appearance.SetData(ent.Owner, ScrapVisuals.Colors, colors);
-        _appearance.SetData(ent.Owner, ScrapVisuals.OutlineColors, outlineColors);
+        // sure whatever
+        var motifColors = colors.ToDictionary(p => p.Key, p => string.Join("|", p.Value));
+        _appearance.SetData(ent.Owner, ScrapVisuals.Colors, motifColors);
     }
 }
