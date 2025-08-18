@@ -24,6 +24,18 @@
     },
     {
       "name": "striped-highlight"
+    },
+    {
+      "name": "plain-base"
+    },
+    {
+      "name": "plain-highlight"
+    },
+    {
+      "name": "space-secondary"
+    },
+    {
+      "name": "space-highlight"
     }
   ]
 }

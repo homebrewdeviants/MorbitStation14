@@ -83,8 +83,15 @@
   color: "#4c3383"
   scrapLayers:
   - key: base
-    color: "#4c3383"
+    state: plain
+    color: "#3a2075"
+  - key: secondary
+    state: space
+    color: "#6b184d"
   - key: highlight
+    state: space
+    color: "#fffed9"
+    shader: unshaded
   - key: outline
     color: "#fffd81"
     shader: unshaded
