@@ -10,6 +10,7 @@
   - key: highlight
   - key: outline
     color: "#af8e69"
+    shader: unshaded
 
 - type: motif
   id: Crystal
@@ -21,6 +22,7 @@
   - key: highlight
   - key: outline
     color: "#6c3bf1"
+    shader: unshaded
 
 - type: motif
   id: Fire
@@ -32,6 +34,7 @@
   - key: highlight
   - key: outline
     color: "#ff6b16"
+    shader: unshaded
 
 - type: motif
   id: Light
@@ -43,6 +46,7 @@
   - key: highlight
   - key: outline
     color: "#fffacb"
+    shader: unshaded
 
 - type: motif
   id: Meat
@@ -59,6 +63,7 @@
     state: striped
   - key: outline
     color: "#deb4a2"
+    shader: unshaded
 
 - type: motif
   id: Rain
@@ -70,6 +75,7 @@
   - key: highlight
   - key: outline
     color: "#454a86"
+    shader: unshaded
 
 - type: motif
   id: Space
@@ -81,6 +87,7 @@
   - key: highlight
   - key: outline
     color: "#fffd81"
+    shader: unshaded
 
 - type: motif
   id: Smoke
@@ -97,6 +104,7 @@
     state: striped
   - key: outline
     color: "#b4adc2"
+    shader: unshaded
 
 - type: motif
   id: Water
@@ -108,3 +116,4 @@
   - key: highlight
   - key: outline
     color: "#75b1f0"
+    shader: unshaded

@@ -45,10 +45,16 @@ public sealed class ScrapVisualizerSystem : VisualizerSystem<ScrapVisualsCompone
         var index = 0;
         foreach (var layer in motif.ScrapLayers)
         {
-            var rsiPath = new ResPath(layer.Sprite);
+            var data = new PrototypeLayerData()
+            {
+                RsiPath = layer.Sprite,
+                State = $"{layer.State}-{layer.Key}",
+                MapKeys = [layer.Key],
+                Shader = layer.Shader,
+            };
+
             SpriteSystem.AddBlankLayer(ent!, index);
-            SpriteSystem.LayerMapSet(ent, key: layer.Key, index);
-            SpriteSystem.LayerSetRsi(ent, key: layer.Key, rsi: rsiPath, state: $"{layer.State}-{layer.Key}");
+            SpriteSystem.LayerSetData(ent, index, data);
             index++;
         }
 

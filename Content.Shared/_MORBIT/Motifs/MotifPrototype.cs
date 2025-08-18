@@ -44,6 +44,9 @@ public sealed partial class MotifPrototype : IPrototype
 [DataDefinition, NetSerializable, Serializable]
 public sealed partial class ScrapVisualLayer
 {
+    /// <summary>
+    /// The sprite layer mapping key to use for this layer.
+    /// </summary>
     [DataField(required: true)]
     public string Key = string.Empty;
 
@@ -64,4 +67,10 @@ public sealed partial class ScrapVisualLayer
     /// </summary>
     [DataField]
     public string State = "default";
+
+    /// <summary>
+    ///  The shader to use for this layer.
+    /// </summary>
+    [DataField]
+    public string? Shader = null;
 }
