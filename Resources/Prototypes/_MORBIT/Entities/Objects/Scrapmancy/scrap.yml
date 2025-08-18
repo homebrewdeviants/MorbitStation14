@@ -6,7 +6,7 @@
   - type: Appearance
   - type: Scrap
   - type: ScrapVisuals
-    colorInterpolationAmount: 0.4
+    colorInterpolationAmount: 0.3
   - type: FloatingVisuals
   - type: Sprite
     sprite: _MORBIT/Objects/Scrapmancy/scrap.rsi
@@ -22,12 +22,30 @@
 
 - type: entity
   parent: ScrapBase
+  id: ScrapCloth
+  suffix: cloth
+  components:
+  - type: Scrap
+    motifs:
+    - Cloth
+
+- type: entity
+  parent: ScrapBase
   id: ScrapCrystal
   suffix: crystal
   components:
   - type: Scrap
     motifs:
     - Crystal
+
+- type: entity
+  parent: ScrapBase
+  id: ScrapFire
+  suffix: fire
+  components:
+  - type: Scrap
+    motifs:
+    - Fire
 
 - type: entity
   parent: ScrapBase
@@ -46,6 +64,15 @@
   - type: Scrap
     motifs:
     - Meat
+
+- type: entity
+  parent: ScrapBase
+  id: ScrapRain
+  suffix: rain
+  components:
+  - type: Scrap
+    motifs:
+    - Rain
 
 - type: entity
   parent: ScrapBase
