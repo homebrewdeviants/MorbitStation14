@@ -155,10 +155,9 @@ public sealed partial class AppearanceBodyOptions : BoxContainer
     public void SetProfile(HumanoidCharacterProfile? profile)
     {
         _profile = profile;
-        UpdateControls();
     }
 
-    private void UpdateControls()
+    public void UpdateControls()
     {
         UpdateSkinColorSliders();
         UpdateEyePickers();

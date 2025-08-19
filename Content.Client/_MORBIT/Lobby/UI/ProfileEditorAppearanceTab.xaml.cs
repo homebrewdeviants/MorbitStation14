@@ -144,6 +144,7 @@ public sealed partial class ProfileEditorAppearanceTab : BoxContainer
     {
         _profile = profile;
         BodyOptions.SetProfile(_profile);
+        BodyOptions.UpdateControls();
 
         UpdateControls();
     }
@@ -255,6 +256,7 @@ public sealed partial class ProfileEditorAppearanceTab : BoxContainer
             return;
 
         _profile = _profile.WithSpecies(newSpecies);
+        BodyOptions.SetProfile(_profile);
         BodyOptions.OnSkinColorOnValueChanged();
         UpdateSexControls();
         UpdateSpeciesGuidebookIcon();

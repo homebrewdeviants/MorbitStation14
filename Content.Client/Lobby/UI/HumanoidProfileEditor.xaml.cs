@@ -509,7 +509,6 @@ namespace Content.Client.Lobby.UI
         /// </remarks>
         private void ReloadPreview()
         {
-            // This also refreshes the preview dummy's appearance.
             CharacterPreview.SetProfile(Profile);
             CharacterPreview.ReloadPreview();
             SetDirty();
