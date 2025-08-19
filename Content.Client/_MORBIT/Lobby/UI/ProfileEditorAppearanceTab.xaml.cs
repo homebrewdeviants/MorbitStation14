@@ -19,7 +19,6 @@ namespace Content.Client._MORBIT.Lobby.UI;
 public sealed partial class ProfileEditorAppearanceTab : BoxContainer
 {
     [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
-    [Dependency] private readonly MarkingManager _markingManager = default!;
 
     public event Action<bool>? OnShowClothes;
     public event Action<HumanoidCharacterProfile>? OnProfileUpdated;
@@ -36,18 +35,25 @@ public sealed partial class ProfileEditorAppearanceTab : BoxContainer
     /// </summary>
     private HumanoidCharacterProfile? _profile;
 
-    private ColorSelectorSliders _rgbSkinColorSelector;
-
     private List<SpeciesPrototype> _species = new();
 
     private static readonly ProtoId<GuideEntryPrototype> DefaultSpeciesGuidebook = "Species";
     private const string SpeciesInfoButtonStyle = "SpeciesInfoDefault";
-    private const int HairSlots = 1;
 
     public ProfileEditorAppearanceTab()
     {
         RobustXamlLoader.Load(this);
         IoCManager.InjectDependencies(this);
+
+        PronounsButton.AddItem(Loc.GetString("humanoid-profile-editor-pronouns-male-text"), (int)Gender.Male);
+        PronounsButton.AddItem(Loc.GetString("humanoid-profile-editor-pronouns-female-text"), (int)Gender.Female);
+        PronounsButton.AddItem(Loc.GetString("humanoid-profile-editor-pronouns-epicene-text"), (int)Gender.Epicene);
+        PronounsButton.AddItem(Loc.GetString("humanoid-profile-editor-pronouns-neuter-text"), (int)Gender.Neuter);
+
+        foreach (var value in Enum.GetValues<SpawnPriorityPreference>())
+        {
+            SpawnPriorityButton.AddItem(Loc.GetString($"humanoid-profile-editor-preference-spawn-priority-{value.ToString().ToLower()}"), (int)value);
+        }
 
         SexButton.OnItemSelected += args =>
         {
@@ -63,11 +69,6 @@ public sealed partial class ProfileEditorAppearanceTab : BoxContainer
             SetAge(newAge);
         };
 
-        PronounsButton.AddItem(Loc.GetString("humanoid-profile-editor-pronouns-male-text"), (int)Gender.Male);
-        PronounsButton.AddItem(Loc.GetString("humanoid-profile-editor-pronouns-female-text"), (int)Gender.Female);
-        PronounsButton.AddItem(Loc.GetString("humanoid-profile-editor-pronouns-epicene-text"), (int)Gender.Epicene);
-        PronounsButton.AddItem(Loc.GetString("humanoid-profile-editor-pronouns-neuter-text"), (int)Gender.Neuter);
-
         PronounsButton.OnItemSelected += args =>
         {
             PronounsButton.SelectId(args.Id);
@@ -78,14 +79,9 @@ public sealed partial class ProfileEditorAppearanceTab : BoxContainer
         {
             SpeciesButton.SelectId(args.Id);
             SetSpecies(_species[args.Id].ID);
-            UpdateHairPickers();
-            OnSkinColorOnValueChanged();
+            BodyOptions.UpdateHairPickers();
+            BodyOptions.OnSkinColorOnValueChanged();
         };
-
-        foreach (var value in Enum.GetValues<SpawnPriorityPreference>())
-        {
-            SpawnPriorityButton.AddItem(Loc.GetString($"humanoid-profile-editor-preference-spawn-priority-{value.ToString().ToLower()}"), (int)value);
-        }
 
         SpawnPriorityButton.OnItemSelected += args =>
         {
@@ -96,144 +92,38 @@ public sealed partial class ProfileEditorAppearanceTab : BoxContainer
         ShowClothes.OnToggled += args => { OnShowClothes?.Invoke(args.Pressed); };
         SpeciesInfoButton.OnPressed += OnSpeciesInfoButtonPressed;
 
-        RgbSkinColorContainer.AddChild(_rgbSkinColorSelector = new ColorSelectorSliders());
-        _rgbSkinColorSelector.SelectorType = ColorSelectorSliders.ColorSelectorType.Hsv;
-        _rgbSkinColorSelector.OnColorChanged += _ => { OnSkinColorOnValueChanged(); };
-        Skin.OnValueChanged += _ => { OnSkinColorOnValueChanged(); };
-
-        HairStylePicker.OnMarkingSelect += newStyle =>
+        BodyOptions.OnProfileUpdated += p =>
         {
-            if (_profile is null)
-                return;
-
-            _profile = _profile.WithCharacterAppearance(
-                _profile.Appearance.WithHairStyleName(newStyle.id));
-
-            OnProfileUpdated?.Invoke(_profile);
+            _profile = p;
+            OnProfileUpdated?.Invoke(p);
         };
 
-        HairStylePicker.OnColorChanged += newColor =>
+        BodyOptions.OnSkinColorUpdated += p =>
         {
-            if (_profile is null)
-                return;
-
-            _profile = _profile.WithCharacterAppearance(_profile.Appearance
-                .WithHairColor(newColor.marking.MarkingColors[0]));
-
-            OnProfileUpdated?.Invoke(_profile);
+            _profile = p;
+            OnSkinColorUpdated?.Invoke(p);
         };
 
-        FacialHairPicker.OnMarkingSelect += newStyle =>
+        BodyOptions.OnEyeColorUpdated += p =>
         {
-            if (_profile is null)
-                return;
-
-            _profile = _profile.WithCharacterAppearance(
-                _profile.Appearance.WithFacialHairStyleName(newStyle.id));
-
-            OnProfileUpdated?.Invoke(_profile);
+            _profile = p;
+            OnEyeColorUpdated?.Invoke(p);
         };
 
-        FacialHairPicker.OnColorChanged += newColor =>
+        BodyOptions.OnHairUpdated += p =>
         {
-            if (_profile is null)
-                return;
-
-            _profile = _profile.WithCharacterAppearance(
-                _profile.Appearance.WithFacialHairColor(newColor.marking.MarkingColors[0]));
-
-            OnFacialHairUpdated?.Invoke(_profile);
+            _profile = p;
+            OnHairUpdated?.Invoke(p);
         };
 
-        HairStylePicker.OnSlotRemove += _ =>
+        BodyOptions.OnFacialHairUpdated += p =>
         {
-            if (_profile is null)
-                return;
-
-            _profile = _profile.WithCharacterAppearance(
-                _profile.Appearance.WithHairStyleName(HairStyles.DefaultHairStyle)
-            );
-
-            UpdateHairPickers();
-            OnHairUpdated?.Invoke(_profile);
-        };
-
-        FacialHairPicker.OnSlotRemove += _ =>
-        {
-            if (_profile is null)
-                return;
-
-            _profile = _profile.WithCharacterAppearance(_profile.Appearance
-                .WithFacialHairStyleName(HairStyles.DefaultFacialHairStyle));
-            UpdateHairPickers();
-            OnFacialHairUpdated?.Invoke(_profile);
-        };
-
-        HairStylePicker.OnSlotAdd += delegate ()
-        {
-            if (_profile is null)
-                return;
-
-            var hair = _markingManager
-                .MarkingsByCategoryAndSpecies(MarkingCategories.Hair, _profile.Species).Keys
-                .FirstOrDefault();
-
-            if (string.IsNullOrEmpty(hair))
-                return;
-
-            _profile = _profile.WithCharacterAppearance(_profile.Appearance.WithHairStyleName(hair));
-            UpdateHairPickers();
-            OnHairUpdated?.Invoke(_profile);
-        };
-
-        FacialHairPicker.OnSlotAdd += delegate ()
-        {
-            if (_profile is null)
-                return;
-
-            var hair = _markingManager.MarkingsByCategoryAndSpecies(MarkingCategories.FacialHair, _profile.Species).Keys
-                .FirstOrDefault();
-
-            if (string.IsNullOrEmpty(hair))
-                return;
-
-            _profile = _profile.WithCharacterAppearance(_profile.Appearance.WithFacialHairStyleName(hair));
-            UpdateHairPickers();
-            OnFacialHairUpdated?.Invoke(_profile);
-        };
-
-        EyeColorPicker.OnEyeColorPicked += newColor =>
-        {
-            if (_profile is null)
-                return;
-
-            _profile = _profile.WithCharacterAppearance(_profile.Appearance.WithEyeColor(newColor));
-            OnEyeColorUpdated?.Invoke(_profile);
+            _profile = p;
+            OnFacialHairUpdated?.Invoke(p);
         };
 
         UpdateSpeciesGuidebookIcon();
         RefreshSpecies();
-    }
-
-    private void OnSkinColorOnValueChanged()
-    {
-        if (_profile == null)
-            return;
-
-        var skin = _prototypeManager.Index(_profile.Species).SkinColoration;
-        UpdateSkinColorVisibility(skin);
-
-        var skinColor = skin switch
-        {
-            HumanoidSkinColor.HumanToned => SkinColor.HumanSkinTone((int)Skin.Value),
-            HumanoidSkinColor.Hues => _rgbSkinColorSelector.Color,
-            HumanoidSkinColor.TintedHues => SkinColor.TintedHues(_rgbSkinColorSelector.Color),
-            HumanoidSkinColor.VoxFeathers => SkinColor.ClosestVoxColor(_rgbSkinColorSelector.Color),
-            _ => throw new ArgumentOutOfRangeException(),
-        };
-
-        _profile = _profile.WithCharacterAppearance(_profile.Appearance.WithSkinColor(skinColor));
-        OnSkinColorUpdated?.Invoke(_profile);
     }
 
     private void OnSpeciesInfoButtonPressed(BaseButton.ButtonEventArgs args)
@@ -260,6 +150,8 @@ public sealed partial class ProfileEditorAppearanceTab : BoxContainer
     public void SetProfile(HumanoidCharacterProfile? profile)
     {
         _profile = profile;
+        BodyOptions.SetProfile(_profile);
+
         UpdateControls();
     }
 
@@ -267,11 +159,8 @@ public sealed partial class ProfileEditorAppearanceTab : BoxContainer
     {
         UpdateSexControls();
         UpdateGenderControls();
-        UpdateSkinColorSliders();
         UpdateSpawnPriorityControls();
         UpdateAgeEdit();
-        UpdateEyePickers();
-        UpdateHairPickers();
         RefreshSpecies();
     }
 
@@ -303,35 +192,6 @@ public sealed partial class ProfileEditorAppearanceTab : BoxContainer
             SexButton.SelectId((int)_profile.Sex);
         else
             SexButton.SelectId((int)sexes[0]);
-    }
-
-    private void UpdateSkinColorSliders()
-    {
-        if (_profile == null)
-            return;
-
-        var skin = _prototypeManager.Index(_profile.Species).SkinColoration;
-        UpdateSkinColorVisibility(skin);
-
-        // TODO: Make this less hardcoded?
-        if (_rgbSkinColorSelector.Visible)
-        {
-            var skinColor = _profile.Appearance.SkinColor;
-
-            if (skin == HumanoidSkinColor.VoxFeathers)
-                skinColor = SkinColor.ClosestVoxColor(_profile.Appearance.SkinColor);
-
-            _rgbSkinColorSelector.Color = skinColor;
-        }
-        else
-            Skin.Value = SkinColor.HumanSkinToneFromColor(_profile.Appearance.SkinColor);
-    }
-
-    private void UpdateSkinColorVisibility(HumanoidSkinColor skin)
-    {
-        var useRgb = skin != HumanoidSkinColor.HumanToned;
-        Skin.Visible = !useRgb;
-        RgbSkinColorContainer.Visible = useRgb;
     }
 
     public void UpdateSpeciesGuidebookIcon()
@@ -368,54 +228,6 @@ public sealed partial class ProfileEditorAppearanceTab : BoxContainer
         SpawnPriorityButton.SelectId((int)_profile.SpawnPriority);
     }
 
-    private void UpdateHairPickers()
-    {
-        UpdateHairPicker();
-        UpdateFacialHairPicker();
-    }
-
-    private void UpdateHairPicker()
-    {
-        if (_profile == null)
-            return;
-
-        var appearance = _profile.Appearance;
-        var hairMarking = new List<Marking>();
-        var hairId = appearance.HairStyleId;
-        if (hairId != HairStyles.DefaultHairStyle)
-        {
-            var hair = new Marking(markingId: hairId, markingColors: new() { appearance.HairColor });
-            hairMarking.Add(hair);
-        }
-
-        HairStylePicker.UpdateData(markings: hairMarking, species: _profile.Species, totalPoints: HairSlots);
-    }
-
-    private void UpdateFacialHairPicker()
-    {
-        if (_profile == null)
-            return;
-
-        var appearance = _profile.Appearance;
-        var facialHairMarking = new List<Marking>();
-        var facialHairId = appearance.FacialHairStyleId;
-        if (facialHairId != HairStyles.DefaultFacialHairStyle)
-        {
-            var hair = new Marking(markingId: facialHairId, markingColors: new() { appearance.FacialHairColor });
-            facialHairMarking.Add(hair);
-        }
-
-        FacialHairPicker.UpdateData(markings: facialHairMarking, species: _profile.Species, totalPoints: HairSlots);
-    }
-
-    private void UpdateEyePickers()
-    {
-        if (_profile == null)
-            return;
-
-        EyeColorPicker.SetData(_profile.Appearance.EyeColor);
-    }
-
     /// <summary>
     /// Refreshes the species selector.
     /// </summary>
@@ -450,7 +262,7 @@ public sealed partial class ProfileEditorAppearanceTab : BoxContainer
             return;
 
         _profile = _profile.WithSpecies(newSpecies);
-        OnSkinColorOnValueChanged();
+        BodyOptions.OnSkinColorOnValueChanged();
         UpdateSexControls();
         UpdateSpeciesGuidebookIcon();
         OnSpeciesUpdated?.Invoke(_profile);
