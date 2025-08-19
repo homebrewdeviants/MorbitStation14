@@ -1,0 +1,126 @@
+# ALPHABETICAL ORDER!!
+
+- type: motif
+  id: Cloth
+  name: motif-type-cloth
+  color: "#c5b28a"
+  scrapLayers:
+  - key: base
+    color: "#c5b28a"
+  - key: highlight
+  - key: outline
+    color: "#af8e69"
+    shader: unshaded
+
+- type: motif
+  id: Crystal
+  name: motif-type-crystal
+  color: "#b12dda"
+  scrapLayers:
+  - key: base
+    color: "#b12dda"
+  - key: highlight
+  - key: outline
+    color: "#6c3bf1"
+    shader: unshaded
+
+- type: motif
+  id: Fire
+  name: motif-type-fire
+  color: "#ff6b16"
+  scrapLayers:
+  - key: base
+    color: "#ffab2d"
+  - key: highlight
+  - key: outline
+    color: "#ff6b16"
+    shader: unshaded
+
+- type: motif
+  id: Light
+  name: motif-type-light
+  color: "#ffef5d"
+  scrapLayers:
+  - key: base
+    color: "#ffef5d"
+  - key: highlight
+  - key: outline
+    color: "#fffacb"
+    shader: unshaded
+
+- type: motif
+  id: Meat
+  name: motif-type-meat
+  color: "#b61717"
+  scrapLayers:
+  - key: base
+    state: striped
+    color: "#c81616"
+  - key: secondary
+    state: striped
+    color: "#7d1111"
+  - key: highlight
+    state: striped
+  - key: outline
+    color: "#deb4a2"
+    shader: unshaded
+
+- type: motif
+  id: Rain
+  name: motif-type-rain
+  color: "#5c6ea1"
+  scrapLayers:
+  - key: base
+    color: "#5c6ea1"
+  - key: highlight
+  - key: outline
+    color: "#454a86"
+    shader: unshaded
+
+- type: motif
+  id: Smoke
+  name: motif-type-smoke
+  color: "#635e68"
+  scrapLayers:
+  - key: base
+    state: striped
+    color: "#635e68"
+  - key: secondary
+    state: striped
+    color: "#7d7b81"
+  - key: highlight
+    state: striped
+  - key: outline
+    color: "#b4adc2"
+    shader: unshaded
+
+- type: motif
+  id: Space
+  name: motif-type-space
+  color: "#4c3383"
+  scrapLayers:
+  - key: base
+    state: plain
+    color: "#3a2075"
+  - key: secondary
+    state: space
+    color: "#6b184d"
+  - key: highlight
+    state: space
+    color: "#fffed9"
+    shader: unshaded
+  - key: outline
+    color: "#fffd81"
+    shader: unshaded
+
+- type: motif
+  id: Water
+  name: motif-type-water
+  color: "#75b1f0"
+  scrapLayers:
+  - key: base
+    color: "#4970db"
+  - key: highlight
+  - key: outline
+    color: "#75b1f0"
+    shader: unshaded

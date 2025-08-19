@@ -1,0 +1,115 @@
+- type: entity
+  parent: BaseItem
+  id: ScrapBase
+  name: scrap
+  description: A little piece of a soul left behind by a living thing, containing bits of memories and emotions and whatever else. This one's just sitting around.
+  components:
+  - type: Appearance
+  - type: Visibility
+  - type: Scrap
+  - type: ScrapVisuals
+    colorInterpolationAmount: 0.3
+  - type: FloatingVisuals
+  - type: Sprite
+    sprite: _MORBIT/Objects/Scrapmancy/scrap.rsi
+    color: "#ffffffff"
+    layers:
+    - map: ["base"]
+      state: default-base
+    - map: ["highlight"]
+      state: default-highlight
+    - map: ["outline"]
+      state: default-outline
+      shader: unshaded
+
+- type: entity
+  parent: ScrapBase
+  id: ScrapCloth
+  suffix: cloth
+  components:
+  - type: Scrap
+    motifs:
+    - Cloth
+
+- type: entity
+  parent: ScrapBase
+  id: ScrapCrystal
+  suffix: crystal
+  components:
+  - type: Scrap
+    motifs:
+    - Crystal
+
+- type: entity
+  parent: ScrapBase
+  id: ScrapFire
+  suffix: fire
+  components:
+  - type: Scrap
+    motifs:
+    - Fire
+
+- type: entity
+  parent: ScrapBase
+  id: ScrapLight
+  suffix: light
+  components:
+  - type: Scrap
+    motifs:
+    - Light
+
+- type: entity
+  parent: ScrapBase
+  id: ScrapMeat
+  suffix: meat
+  components:
+  - type: Scrap
+    motifs:
+    - Meat
+
+- type: entity
+  parent: ScrapBase
+  id: ScrapRain
+  suffix: rain
+  components:
+  - type: Scrap
+    motifs:
+    - Rain
+
+- type: entity
+  parent: ScrapBase
+  id: ScrapSmoke
+  suffix: smoke
+  components:
+  - type: Scrap
+    motifs:
+    - Smoke
+
+- type: entity
+  parent: ScrapBase
+  id: ScrapSpace
+  suffix: space
+  components:
+  - type: Scrap
+    motifs:
+    - Space
+
+- type: entity
+  parent: ScrapBase
+  id: ScrapWater
+  suffix: water
+  components:
+  - type: Scrap
+    motifs:
+    - Water
+
+- type: entity
+  parent: ScrapBase
+  id: ScrapAmalgam
+  suffix: amalgam
+  components:
+  - type: Scrap
+    motifs:
+    - Meat
+    - Space
+    - Water
