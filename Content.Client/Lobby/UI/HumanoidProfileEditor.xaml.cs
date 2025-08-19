@@ -25,12 +25,10 @@ using Robust.Client.Player;
 using Robust.Client.UserInterface;
 using Robust.Client.UserInterface.Controls;
 using Robust.Client.UserInterface.XAML;
-using Robust.Client.Utility;
 using Robust.Shared.Configuration;
 using Robust.Shared.ContentPack;
 using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
-using Direction = Robust.Shared.Maths.Direction;
 
 namespace Content.Client.Lobby.UI
 {
