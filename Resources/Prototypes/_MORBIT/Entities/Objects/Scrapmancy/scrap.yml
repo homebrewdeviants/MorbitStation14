@@ -5,6 +5,7 @@
   description: A little piece of a soul left behind by a living thing, containing bits of memories and emotions and whatever else. This one's just sitting around.
   components:
   - type: Appearance
+  - type: Visibility
   - type: Scrap
   - type: ScrapVisuals
     colorInterpolationAmount: 0.3
