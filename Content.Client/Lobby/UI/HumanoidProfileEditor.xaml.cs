@@ -69,16 +69,6 @@ namespace Content.Client.Lobby.UI
         public event Action? Save;
 
         /// <summary>
-        /// Entity used for the profile editor preview
-        /// </summary>
-        public EntityUid PreviewDummy;
-
-        /// <summary>
-        /// Temporary override of their selected job, used to preview roles.
-        /// </summary>
-        public JobPrototype? JobOverride;
-
-        /// <summary>
         /// The character slot for the current profile.
         /// </summary>
         public int? CharacterSlot;
@@ -92,10 +82,7 @@ namespace Content.Client.Lobby.UI
 
         private readonly Dictionary<string, BoxContainer> _jobCategories;
 
-        private Direction _previewRotation = Direction.North;
-
         private bool _isDirty;
-        private bool _showClothes;
 
         public event Action<List<ProtoId<GuideEntryPrototype>>>? OnOpenGuidebook;
 
@@ -175,11 +162,9 @@ namespace Content.Client.Lobby.UI
             #region Appearance
 
             TabContainer.SetTabTitle(0, Loc.GetString("humanoid-profile-editor-appearance-tab"));
-            _showClothes = true;
-
             AppearanceTab.OnShowClothes += show =>
             {
-                _showClothes = show;
+                CharacterPreview.ShowClothes = show;
                 ReloadPreview();
             };
 
@@ -283,21 +268,6 @@ namespace Content.Client.Lobby.UI
             #endregion Markings
 
             RefreshFlavorText();
-
-            #region Dummy
-
-            SpriteRotateLeft.OnPressed += _ =>
-            {
-                _previewRotation = _previewRotation.TurnCw();
-                SetPreviewRotation(_previewRotation);
-            };
-            SpriteRotateRight.OnPressed += _ =>
-            {
-                _previewRotation = _previewRotation.TurnCcw();
-                SetPreviewRotation(_previewRotation);
-            };
-
-            #endregion Dummy
 
             #endregion Left
 
@@ -543,17 +513,9 @@ namespace Content.Client.Lobby.UI
         /// </remarks>
         private void ReloadPreview()
         {
-            _entManager.DeleteEntity(PreviewDummy);
-            PreviewDummy = EntityUid.Invalid;
-
-            if (Profile == null || !_prototypeManager.HasIndex(Profile.Species))
-                return;
-
-            PreviewDummy = _controller.LoadProfileEntity(Profile, JobOverride, _showClothes);
-            SpriteView.SetEntity(PreviewDummy);
-            _entManager.System<MetaDataSystem>().SetEntityName(PreviewDummy, Profile.Name);
-
-            // Check and set the dirty flag to enable the save/reset buttons as appropriate.
+            // This also refreshes the preview dummy's appearance.
+            CharacterPreview.SetProfile(Profile);
+            CharacterPreview.ReloadPreview();
             SetDirty();
         }
 
@@ -575,8 +537,8 @@ namespace Content.Client.Lobby.UI
             Profile = profile?.Clone();
             CharacterSlot = slot;
             IsDirty = false;
-            JobOverride = null;
 
+            CharacterPreview.JobOverride = null;
             AppearanceTab.SetProfile(Profile);
 
             UpdateNameEdit();
@@ -600,18 +562,13 @@ namespace Content.Client.Lobby.UI
             }
         }
 
-
         /// <summary>
         /// A slim reload that only updates the entity itself and not any of the job entities, etc.
         /// </summary>
         private void ReloadProfilePreview()
         {
-            if (Profile == null || !_entManager.EntityExists(PreviewDummy))
-                return;
-
-            _entManager.System<HumanoidAppearanceSystem>().LoadProfile(PreviewDummy, Profile);
-
-            // Check and set the dirty flag to enable the save/reset buttons as appropriate.
+            CharacterPreview.SetProfile(Profile);
+            CharacterPreview.ReloadProfilePreview();
             SetDirty();
         }
 
@@ -811,9 +768,7 @@ namespace Content.Client.Lobby.UI
             if (collection == null || _playerManager.LocalSession == null || Profile == null)
                 return;
 
-            JobOverride = jobProto;
             var session = _playerManager.LocalSession;
-
             _loadoutWindow = new LoadoutWindow(Profile, roleLoadout, roleLoadoutProto, _playerManager.LocalSession, collection)
             {
                 Title = Loc.GetString("loadout-window-title-loadout", ("job", $"{jobProto?.LocalizedName}")),
@@ -846,12 +801,12 @@ namespace Content.Client.Lobby.UI
                 ReloadPreview();
             };
 
-            JobOverride = jobProto;
+            CharacterPreview.JobOverride = jobProto;
             ReloadPreview();
 
             _loadoutWindow.OnClose += () =>
             {
-                JobOverride = null;
+                CharacterPreview.JobOverride = null;
                 ReloadPreview();
             };
 
@@ -895,22 +850,13 @@ namespace Content.Client.Lobby.UI
             ReloadPreview();
         }
 
-        protected override void ExitedTree()
-        {
-            base.ExitedTree();
-            _entManager.DeleteEntity(PreviewDummy);
-            PreviewDummy = EntityUid.Invalid;
-        }
-
         private void SetName(string newName)
         {
             Profile = Profile?.WithName(newName);
             SetDirty();
 
-            if (!IsDirty)
-                return;
-
-            _entManager.System<MetaDataSystem>().SetEntityName(PreviewDummy, newName);
+            if (IsDirty)
+                CharacterPreview.SetName(newName);
         }
 
         public bool IsDirty
@@ -1046,11 +992,6 @@ namespace Content.Client.Lobby.UI
             ResetButton.Disabled = Profile is null || !IsDirty;
         }
 
-        private void SetPreviewRotation(Direction direction)
-        {
-            SpriteView.OverrideDirection = (Direction) ((int) direction % 4 * 2);
-        }
-
         private void RandomizeEverything()
         {
             Profile = HumanoidCharacterProfile.Random();
@@ -1071,11 +1012,13 @@ namespace Content.Client.Lobby.UI
             if (_imaging)
                 return;
 
-            var dir = SpriteView.OverrideDirection ?? Direction.South;
+            var dir = CharacterPreview.PreviewRotation;
 
             // I tried disabling the button but it looks sorta goofy as it only takes a frame or two to save
             _imaging = true;
-            await _entManager.System<ContentSpriteSystem>().Export(PreviewDummy, dir, includeId: false);
+            await _entManager.System<ContentSpriteSystem>().Export(entity: CharacterPreview.PreviewDummy,
+                direction: dir,
+                includeId: false);
             _imaging = false;
         }
 

@@ -3,7 +3,7 @@
          xmlns:humanoid="clr-namespace:Content.Client.Humanoid"
          xmlns:cc="clr-namespace:Content.Client.Administration.UI.CustomControls"
          xmlns:ui="clr-namespace:Content.Client.Lobby.UI"
-         xmlns:tabs="clr-namespace:Content.Client._MORBIT.Lobby.UI"
+         xmlns:mod="clr-namespace:Content.Client._MORBIT.Lobby.UI"
          HorizontalExpand="True">
         <!-- Left side -->
         <BoxContainer Orientation="Vertical" Margin="10 10 10 10" HorizontalExpand="True">
@@ -49,7 +49,7 @@
             <!-- tabContainer -->
             <TabContainer Name="TabContainer" VerticalExpand="True">
                 <!-- MORBIT: Make all tabs modular -->
-                <tabs:ProfileEditorAppearanceTab Name="AppearanceTab" />
+                <mod:ProfileEditorAppearanceTab Name="AppearanceTab" />
 
                 <BoxContainer Orientation="Vertical">
                     <!-- Jobs -->
@@ -80,11 +80,6 @@
         </BoxContainer>
         <!-- Right side -->
         <BoxContainer Orientation="Vertical" VerticalExpand="True" VerticalAlignment="Center">
-            <SpriteView Name="SpriteView" Scale="8 8" Margin="4" SizeFlagsStretchRatio="1" />
-            <BoxContainer Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 5">
-                <Button Name="SpriteRotateLeft" Text="◀" StyleClasses="OpenRight" />
-                <cc:VSeparator Margin="2 0 3 0" />
-                <Button Name="SpriteRotateRight" Text="▶" StyleClasses="OpenLeft" />
-            </BoxContainer>
+            <mod:CharacterPreview Name="CharacterPreview" />
         </BoxContainer>
 </BoxContainer>
