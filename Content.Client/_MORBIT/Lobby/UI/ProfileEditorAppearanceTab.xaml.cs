@@ -41,6 +41,8 @@ public sealed partial class ProfileEditorAppearanceTab : BoxContainer
     private List<SpeciesPrototype> _species = new();
 
     private static readonly ProtoId<GuideEntryPrototype> DefaultSpeciesGuidebook = "Species";
+    private const string SpeciesInfoButtonStyle = "SpeciesInfoDefault";
+    private const int HairSlots = 1;
 
     public ProfileEditorAppearanceTab()
     {
@@ -72,8 +74,6 @@ public sealed partial class ProfileEditorAppearanceTab : BoxContainer
             SetGender((Gender)args.Id);
         };
 
-        RefreshSpecies();
-
         SpeciesButton.OnItemSelected += args =>
         {
             SpeciesButton.SelectId(args.Id);
@@ -96,17 +96,10 @@ public sealed partial class ProfileEditorAppearanceTab : BoxContainer
         ShowClothes.OnToggled += args => { OnShowClothes?.Invoke(args.Pressed); };
         SpeciesInfoButton.OnPressed += OnSpeciesInfoButtonPressed;
 
-        Skin.OnValueChanged += _ =>
-        {
-            OnSkinColorOnValueChanged();
-        };
-
         RgbSkinColorContainer.AddChild(_rgbSkinColorSelector = new ColorSelectorSliders());
         _rgbSkinColorSelector.SelectorType = ColorSelectorSliders.ColorSelectorType.Hsv;
-        _rgbSkinColorSelector.OnColorChanged += _ =>
-        {
-            OnSkinColorOnValueChanged();
-        };
+        _rgbSkinColorSelector.OnColorChanged += _ => { OnSkinColorOnValueChanged(); };
+        Skin.OnValueChanged += _ => { OnSkinColorOnValueChanged(); };
 
         HairStylePicker.OnMarkingSelect += newStyle =>
         {
@@ -219,65 +212,27 @@ public sealed partial class ProfileEditorAppearanceTab : BoxContainer
         };
 
         UpdateSpeciesGuidebookIcon();
+        RefreshSpecies();
     }
 
     private void OnSkinColorOnValueChanged()
     {
-        if (_profile is null)
+        if (_profile == null)
             return;
 
         var skin = _prototypeManager.Index(_profile.Species).SkinColoration;
-        var color = Color.White;
+        UpdateSkinColorVisibility(skin);
 
-        switch (skin)
+        var skinColor = skin switch
         {
-            case HumanoidSkinColor.HumanToned:
-                {
-                    if (!Skin.Visible)
-                    {
-                        Skin.Visible = true;
-                        RgbSkinColorContainer.Visible = false;
-                    }
+            HumanoidSkinColor.HumanToned => SkinColor.HumanSkinTone((int)Skin.Value),
+            HumanoidSkinColor.Hues => _rgbSkinColorSelector.Color,
+            HumanoidSkinColor.TintedHues => SkinColor.TintedHues(_rgbSkinColorSelector.Color),
+            HumanoidSkinColor.VoxFeathers => SkinColor.ClosestVoxColor(_rgbSkinColorSelector.Color),
+            _ => throw new ArgumentOutOfRangeException(),
+        };
 
-                    color = SkinColor.HumanSkinTone((int)Skin.Value);
-                    break;
-                }
-            case HumanoidSkinColor.Hues:
-                {
-                    if (!RgbSkinColorContainer.Visible)
-                    {
-                        Skin.Visible = false;
-                        RgbSkinColorContainer.Visible = true;
-                    }
-
-                    color = _rgbSkinColorSelector.Color;
-                    break;
-                }
-            case HumanoidSkinColor.TintedHues:
-                {
-                    if (!RgbSkinColorContainer.Visible)
-                    {
-                        Skin.Visible = false;
-                        RgbSkinColorContainer.Visible = true;
-                    }
-
-                    color = SkinColor.TintedHues(_rgbSkinColorSelector.Color);
-                    break;
-                }
-            case HumanoidSkinColor.VoxFeathers:
-                {
-                    if (!RgbSkinColorContainer.Visible)
-                    {
-                        Skin.Visible = false;
-                        RgbSkinColorContainer.Visible = true;
-                    }
-
-                    color = SkinColor.ClosestVoxColor(_rgbSkinColorSelector.Color);
-                    break;
-                }
-        }
-
-        _profile = _profile.WithCharacterAppearance(_profile.Appearance.WithSkinColor(color));
+        _profile = _profile.WithCharacterAppearance(_profile.Appearance.WithSkinColor(skinColor));
         OnSkinColorUpdated?.Invoke(_profile);
     }
 
@@ -312,7 +267,7 @@ public sealed partial class ProfileEditorAppearanceTab : BoxContainer
     {
         UpdateSexControls();
         UpdateGenderControls();
-        UpdateSkinColor();
+        UpdateSkinColorSliders();
         UpdateSpawnPriorityControls();
         UpdateAgeEdit();
         UpdateEyePickers();
@@ -331,27 +286,18 @@ public sealed partial class ProfileEditorAppearanceTab : BoxContainer
             return;
 
         SexButton.Clear();
-
         var sexes = new List<Sex>();
 
         // add species sex options, default to just none if we are in bizzaro world and have no species
-        if (_prototypeManager.TryIndex<SpeciesPrototype>(_profile.Species, out var speciesProto))
-        {
+        if (_prototypeManager.TryIndex(_profile.Species, out var speciesProto))
             foreach (var sex in speciesProto.Sexes)
-            {
                 sexes.Add(sex);
-            }
-        }
         else
-        {
             sexes.Add(Sex.Unsexed);
-        }
 
         // add button for each sex
         foreach (var sex in sexes)
-        {
             SexButton.AddItem(Loc.GetString($"humanoid-profile-editor-sex-{sex.ToString().ToLower()}-text"), (int)sex);
-        }
 
         if (sexes.Contains(_profile.Sex))
             SexButton.SelectId((int)_profile.Sex);
@@ -359,91 +305,57 @@ public sealed partial class ProfileEditorAppearanceTab : BoxContainer
             SexButton.SelectId((int)sexes[0]);
     }
 
-    private void UpdateSkinColor()
+    private void UpdateSkinColorSliders()
     {
         if (_profile == null)
             return;
 
-        var skin = _prototypeManager.Index<SpeciesPrototype>(_profile.Species).SkinColoration;
+        var skin = _prototypeManager.Index(_profile.Species).SkinColoration;
+        UpdateSkinColorVisibility(skin);
 
-        switch (skin)
+        // TODO: Make this less hardcoded?
+        if (_rgbSkinColorSelector.Visible)
         {
-            case HumanoidSkinColor.HumanToned:
-                {
-                    if (!Skin.Visible)
-                    {
-                        Skin.Visible = true;
-                        RgbSkinColorContainer.Visible = false;
-                    }
+            var skinColor = _profile.Appearance.SkinColor;
 
-                    Skin.Value = SkinColor.HumanSkinToneFromColor(_profile.Appearance.SkinColor);
+            if (skin == HumanoidSkinColor.VoxFeathers)
+                skinColor = SkinColor.ClosestVoxColor(_profile.Appearance.SkinColor);
 
-                    break;
-                }
-            case HumanoidSkinColor.Hues:
-                {
-                    if (!RgbSkinColorContainer.Visible)
-                    {
-                        Skin.Visible = false;
-                        RgbSkinColorContainer.Visible = true;
-                    }
-
-                    // set the RGB values to the direct values otherwise
-                    _rgbSkinColorSelector.Color = _profile.Appearance.SkinColor;
-                    break;
-                }
-            case HumanoidSkinColor.TintedHues:
-                {
-                    if (!RgbSkinColorContainer.Visible)
-                    {
-                        Skin.Visible = false;
-                        RgbSkinColorContainer.Visible = true;
-                    }
-
-                    // set the RGB values to the direct values otherwise
-                    _rgbSkinColorSelector.Color = _profile.Appearance.SkinColor;
-                    break;
-                }
-            case HumanoidSkinColor.VoxFeathers:
-                {
-                    if (!RgbSkinColorContainer.Visible)
-                    {
-                        Skin.Visible = false;
-                        RgbSkinColorContainer.Visible = true;
-                    }
-
-                    _rgbSkinColorSelector.Color = SkinColor.ClosestVoxColor(_profile.Appearance.SkinColor);
-
-                    break;
-                }
+            _rgbSkinColorSelector.Color = skinColor;
         }
+        else
+            Skin.Value = SkinColor.HumanSkinToneFromColor(_profile.Appearance.SkinColor);
+    }
+
+    private void UpdateSkinColorVisibility(HumanoidSkinColor skin)
+    {
+        var useRgb = skin != HumanoidSkinColor.HumanToned;
+        Skin.Visible = !useRgb;
+        RgbSkinColorContainer.Visible = useRgb;
     }
 
     public void UpdateSpeciesGuidebookIcon()
     {
         SpeciesInfoButton.StyleClasses.Clear();
-
         var species = _profile?.Species;
+
         if (species is null)
             return;
 
-        if (!_prototypeManager.TryIndex<SpeciesPrototype>(species, out var speciesProto))
+        if (!_prototypeManager.TryIndex(species, out var _))
             return;
 
         // Don't display the info button if no guide entry is found
         if (!_prototypeManager.HasIndex<GuideEntryPrototype>(species))
             return;
 
-        const string style = "SpeciesInfoDefault";
-        SpeciesInfoButton.StyleClasses.Add(style);
+        SpeciesInfoButton.StyleClasses.Add(SpeciesInfoButtonStyle);
     }
 
     private void UpdateGenderControls()
     {
         if (_profile == null)
-        {
             return;
-        }
 
         PronounsButton.SelectId((int)_profile.Gender);
     }
@@ -451,34 +363,49 @@ public sealed partial class ProfileEditorAppearanceTab : BoxContainer
     private void UpdateSpawnPriorityControls()
     {
         if (_profile == null)
-        {
             return;
-        }
 
         SpawnPriorityButton.SelectId((int)_profile.SpawnPriority);
     }
 
     private void UpdateHairPickers()
     {
+        UpdateHairPicker();
+        UpdateFacialHairPicker();
+    }
+
+    private void UpdateHairPicker()
+    {
         if (_profile == null)
             return;
 
-        var hairMarking = _profile.Appearance.HairStyleId == HairStyles.DefaultHairStyle
-            ? new List<Marking>()
-            : new() { new(_profile.Appearance.HairStyleId, new List<Color>() { _profile.Appearance.HairColor }) };
+        var appearance = _profile.Appearance;
+        var hairMarking = new List<Marking>();
+        var hairId = appearance.HairStyleId;
+        if (hairId != HairStyles.DefaultHairStyle)
+        {
+            var hair = new Marking(markingId: hairId, markingColors: new() { appearance.HairColor });
+            hairMarking.Add(hair);
+        }
 
-        var facialHairMarking = _profile.Appearance.FacialHairStyleId == HairStyles.DefaultFacialHairStyle
-            ? new List<Marking>()
-            : new() { new(_profile.Appearance.FacialHairStyleId, new List<Color>() { _profile.Appearance.FacialHairColor }) };
+        HairStylePicker.UpdateData(markings: hairMarking, species: _profile.Species, totalPoints: HairSlots);
+    }
 
-        HairStylePicker.UpdateData(
-            hairMarking,
-            _profile.Species,
-            1);
-        FacialHairPicker.UpdateData(
-            facialHairMarking,
-            _profile.Species,
-            1);
+    private void UpdateFacialHairPicker()
+    {
+        if (_profile == null)
+            return;
+
+        var appearance = _profile.Appearance;
+        var facialHairMarking = new List<Marking>();
+        var facialHairId = appearance.FacialHairStyleId;
+        if (facialHairId != HairStyles.DefaultFacialHairStyle)
+        {
+            var hair = new Marking(markingId: facialHairId, markingColors: new() { appearance.FacialHairColor });
+            facialHairMarking.Add(hair);
+        }
+
+        FacialHairPicker.UpdateData(markings: facialHairMarking, species: _profile.Species, totalPoints: HairSlots);
     }
 
     private void UpdateEyePickers()
@@ -506,18 +433,14 @@ public sealed partial class ProfileEditorAppearanceTab : BoxContainer
             SpeciesButton.AddItem(name, i);
 
             if (_profile?.Species.Equals(_species[i].ID) == true)
-            {
                 SpeciesButton.SelectId(i);
-            }
         }
 
         // If our species isn't available then reset it to default.
         if (_profile != null)
         {
             if (!speciesIds.Contains(_profile.Species))
-            {
                 SetSpecies(SharedHumanoidAppearanceSystem.DefaultSpecies);
-            }
         }
     }
 
@@ -547,21 +470,15 @@ public sealed partial class ProfileEditorAppearanceTab : BoxContainer
         if (_profile is null)
             return;
 
-        _profile = _profile.WithSex(newSex);
         // for convenience, default to most common gender when new sex is selected
-        switch (newSex)
+        var newGender = newSex switch
         {
-            case Sex.Male:
-                _profile = _profile.WithGender(Gender.Male);
-                break;
-            case Sex.Female:
-                _profile = _profile.WithGender(Gender.Female);
-                break;
-            default:
-                _profile = _profile.WithGender(Gender.Epicene);
-                break;
-        }
+            Sex.Male => Gender.Male,
+            Sex.Female => Gender.Female,
+            _ => Gender.Epicene,
+        };
 
+        _profile = _profile.WithSex(newSex).WithGender(newGender);
         UpdateGenderControls();
         OnSexUpdated?.Invoke(_profile);
     }
