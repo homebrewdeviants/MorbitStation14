@@ -91,12 +91,6 @@ public sealed partial class ProfileEditorAppearanceTab : BoxContainer
         ShowClothes.OnToggled += args => { OnShowClothes?.Invoke(args.Pressed); };
         SpeciesInfoButton.OnPressed += OnSpeciesInfoButtonPressed;
 
-        BodyOptions.OnProfileUpdated += p =>
-        {
-            _profile = p;
-            OnProfileUpdated?.Invoke(p);
-        };
-
         BodyOptions.OnSkinColorUpdated += p =>
         {
             _profile = p;

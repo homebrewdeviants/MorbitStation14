@@ -17,7 +17,6 @@ public sealed partial class AppearanceBodyOptions : BoxContainer
     [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
     [Dependency] private readonly MarkingManager _markingManager = default!;
 
-    public event Action<HumanoidCharacterProfile>? OnProfileUpdated;
     public event Action<HumanoidCharacterProfile>? OnSkinColorUpdated;
     public event Action<HumanoidCharacterProfile>? OnEyeColorUpdated;
     public event Action<HumanoidCharacterProfile>? OnHairUpdated;
@@ -50,7 +49,7 @@ public sealed partial class AppearanceBodyOptions : BoxContainer
             _profile = _profile.WithCharacterAppearance(
                 _profile.Appearance.WithHairStyleName(newStyle.id));
 
-            OnProfileUpdated?.Invoke(_profile);
+            OnHairUpdated?.Invoke(_profile);
         };
 
         HairStylePicker.OnColorChanged += newColor =>
@@ -61,29 +60,7 @@ public sealed partial class AppearanceBodyOptions : BoxContainer
             _profile = _profile.WithCharacterAppearance(_profile.Appearance
                 .WithHairColor(newColor.marking.MarkingColors[0]));
 
-            OnProfileUpdated?.Invoke(_profile);
-        };
-
-        FacialHairPicker.OnMarkingSelect += newStyle =>
-        {
-            if (_profile is null)
-                return;
-
-            _profile = _profile.WithCharacterAppearance(
-                _profile.Appearance.WithFacialHairStyleName(newStyle.id));
-
-            OnProfileUpdated?.Invoke(_profile);
-        };
-
-        FacialHairPicker.OnColorChanged += newColor =>
-        {
-            if (_profile is null)
-                return;
-
-            _profile = _profile.WithCharacterAppearance(
-                _profile.Appearance.WithFacialHairColor(newColor.marking.MarkingColors[0]));
-
-            OnFacialHairUpdated?.Invoke(_profile);
+            OnHairUpdated?.Invoke(_profile);
         };
 
         HairStylePicker.OnSlotRemove += _ =>
@@ -97,17 +74,6 @@ public sealed partial class AppearanceBodyOptions : BoxContainer
 
             UpdateHairPickers();
             OnHairUpdated?.Invoke(_profile);
-        };
-
-        FacialHairPicker.OnSlotRemove += _ =>
-        {
-            if (_profile is null)
-                return;
-
-            _profile = _profile.WithCharacterAppearance(_profile.Appearance
-                .WithFacialHairStyleName(HairStyles.DefaultFacialHairStyle));
-            UpdateHairPickers();
-            OnFacialHairUpdated?.Invoke(_profile);
         };
 
         HairStylePicker.OnSlotAdd += delegate ()
@@ -125,6 +91,39 @@ public sealed partial class AppearanceBodyOptions : BoxContainer
             _profile = _profile.WithCharacterAppearance(_profile.Appearance.WithHairStyleName(hair));
             UpdateHairPickers();
             OnHairUpdated?.Invoke(_profile);
+        };
+
+        FacialHairPicker.OnMarkingSelect += newStyle =>
+        {
+            if (_profile is null)
+                return;
+
+            _profile = _profile.WithCharacterAppearance(
+                _profile.Appearance.WithFacialHairStyleName(newStyle.id));
+
+            OnFacialHairUpdated?.Invoke(_profile);
+        };
+
+        FacialHairPicker.OnColorChanged += newColor =>
+        {
+            if (_profile is null)
+                return;
+
+            _profile = _profile.WithCharacterAppearance(
+                _profile.Appearance.WithFacialHairColor(newColor.marking.MarkingColors[0]));
+
+            OnFacialHairUpdated?.Invoke(_profile);
+        };
+
+        FacialHairPicker.OnSlotRemove += _ =>
+        {
+            if (_profile is null)
+                return;
+
+            _profile = _profile.WithCharacterAppearance(_profile.Appearance
+                .WithFacialHairStyleName(HairStyles.DefaultFacialHairStyle));
+            UpdateHairPickers();
+            OnFacialHairUpdated?.Invoke(_profile);
         };
 
         FacialHairPicker.OnSlotAdd += delegate ()
