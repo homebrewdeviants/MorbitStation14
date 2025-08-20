@@ -1,6 +1,7 @@
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using Content.Client._MORBIT.Lobby.UI;
 using Content.Client.Humanoid;
 using Content.Client.Lobby.UI.Loadouts;
 using Content.Client.Lobby.UI.Roles;
@@ -44,9 +45,8 @@ namespace Content.Client.Lobby.UI
         private readonly IResourceManager _resManager;
         private readonly MarkingManager _markingManager;
         private readonly JobRequirementsManager _requirements;
-        private readonly LobbyUIController _controller;
-
         private readonly SpriteSystem _sprite;
+
 
         // CCvar.
         private int _maxNameLength;
@@ -57,8 +57,6 @@ namespace Content.Client.Lobby.UI
 
         // One at a time.
         private LoadoutWindow? _loadoutWindow;
-
-        private bool _exporting;
         private bool _imaging;
 
         /// <summary>
@@ -80,24 +78,9 @@ namespace Content.Client.Lobby.UI
 
         private readonly Dictionary<string, BoxContainer> _jobCategories;
 
-        private bool _isDirty;
-
-        public bool IsDirty
-        {
-            get => _isDirty;
-            set
-            {
-                if (_isDirty == value)
-                    return;
-
-                _isDirty = value;
-                UpdateSaveButton();
-            }
-        }
-
         public event Action<List<ProtoId<GuideEntryPrototype>>>? OnOpenGuidebook;
 
-        private ISawmill _sawmill;
+        public bool IsDirty => ProfileButtons.IsDirty;
 
         public HumanoidProfileEditor(
             IClientPreferencesManager preferencesManager,
@@ -112,7 +95,6 @@ namespace Content.Client.Lobby.UI
             MarkingManager markings)
         {
             RobustXamlLoader.Load(this);
-            _sawmill = logManager.GetSawmill("profile.editor");
             _cfgManager = configurationManager;
             _entManager = entManager;
             _dialogManager = dialogManager;
@@ -122,41 +104,21 @@ namespace Content.Client.Lobby.UI
             _preferencesManager = preferencesManager;
             _resManager = resManager;
             _requirements = requirements;
-            _controller = UserInterfaceManager.GetUIController<LobbyUIController>();
             _sprite = _entManager.System<SpriteSystem>();
 
             _maxNameLength = _cfgManager.GetCVar(CCVars.MaxNameLength);
             _allowFlavorText = _cfgManager.GetCVar(CCVars.FlavorText);
 
-            ImportButton.OnPressed += args =>
+            ProfileButtons.OnReset += () =>
             {
-                ImportProfile();
+                var selectedCharacter = _preferencesManager.Preferences?.SelectedCharacter;
+                var selectedIndex = _preferencesManager.Preferences?.SelectedCharacterIndex;
+                SetProfile((HumanoidCharacterProfile?)selectedCharacter, selectedIndex);
             };
 
-            ExportButton.OnPressed += args =>
-            {
-                ExportProfile();
-            };
-
-            ExportImageButton.OnPressed += args =>
-            {
-                ExportImage();
-            };
-
-            OpenImagesButton.OnPressed += args =>
-            {
-                _resManager.UserData.OpenOsWindow(ContentSpriteSystem.Exports);
-            };
-
-            ResetButton.OnPressed += args =>
-            {
-                SetProfile((HumanoidCharacterProfile?)_preferencesManager.Preferences?.SelectedCharacter, _preferencesManager.Preferences?.SelectedCharacterIndex);
-            };
-
-            SaveButton.OnPressed += args =>
-            {
-                Save?.Invoke();
-            };
+            ProfileButtons.OnSaved += () => { Save?.Invoke(); };
+            ProfileButtons.OnProfileImported += ImportProfile;
+            ProfileButtons.OnExportImage += ExportImage;
 
             #region Left
 
@@ -281,8 +243,6 @@ namespace Content.Client.Lobby.UI
             RefreshFlavorText();
 
             #endregion Left
-
-            IsDirty = false;
         }
 
         /// <summary>
@@ -498,12 +458,12 @@ namespace Content.Client.Lobby.UI
             // If it equals default then reset the button.
             if (Profile == null || _preferencesManager.Preferences?.SelectedCharacter.MemberwiseEquals(Profile) == true)
             {
-                IsDirty = false;
+                ProfileButtons.IsDirty = false;
                 return;
             }
 
             // TODO: Check if profile matches default.
-            IsDirty = true;
+            ProfileButtons.IsDirty = true;
         }
 
         /// <summary>
@@ -544,15 +504,15 @@ namespace Content.Client.Lobby.UI
         {
             Profile = profile?.Clone();
             CharacterSlot = slot;
-            IsDirty = false;
 
             CharacterPreview.JobOverride = null;
+            ProfileButtons.SetProfile(Profile);
             AppearanceTab.SetProfile(Profile);
+            ProfileButtons.IsDirty = false;
 
             UpdateNameEdit();
             UpdateFlavorTextEdit();
             UpdateEyePickers();
-            UpdateSaveButton();
             UpdateMarkings();
             UpdateCMarkingsHair();
             UpdateCMarkingsFacialHair();
@@ -860,7 +820,7 @@ namespace Content.Client.Lobby.UI
             Profile = Profile?.WithName(newName);
             SetDirty();
 
-            if (IsDirty)
+            if (ProfileButtons.IsDirty)
                 CharacterPreview.SetName(newName);
         }
 
@@ -978,12 +938,6 @@ namespace Content.Client.Lobby.UI
             Markings.CurrentEyeColor = Profile.Appearance.EyeColor;
         }
 
-        private void UpdateSaveButton()
-        {
-            SaveButton.Disabled = Profile is null || !IsDirty;
-            ResetButton.Disabled = Profile is null || !IsDirty;
-        }
-
         private void RandomizeEverything()
         {
             Profile = HumanoidCharacterProfile.Random();
@@ -999,6 +953,18 @@ namespace Content.Client.Lobby.UI
             UpdateNameEdit();
         }
 
+        private void ImportProfile(HumanoidCharacterProfile profile)
+        {
+            if (CharacterSlot is null)
+                return;
+
+            var oldProfile = Profile;
+            SetProfile(profile, CharacterSlot);
+
+            if (oldProfile is not null)
+                ProfileButtons.IsDirty = !profile.MemberwiseEquals(oldProfile);
+        }
+
         private async void ExportImage()
         {
             if (_imaging)
@@ -1006,89 +972,12 @@ namespace Content.Client.Lobby.UI
 
             var dir = CharacterPreview.PreviewRotation;
 
-            // I tried disabling the button but it looks sorta goofy as it only takes a frame or two to save
             _imaging = true;
             await _entManager.System<ContentSpriteSystem>().Export(entity: CharacterPreview.PreviewDummy,
                 direction: dir,
                 includeId: false);
+
             _imaging = false;
-        }
-
-        private async void ImportProfile()
-        {
-            if (_exporting || CharacterSlot == null || Profile == null)
-                return;
-
-            StartExport();
-            await using var file = await _dialogManager.OpenFile(new FileDialogFilters(new FileDialogFilters.Group("yml")));
-
-            if (file == null)
-            {
-                EndExport();
-                return;
-            }
-
-            try
-            {
-                var profile = _entManager.System<HumanoidAppearanceSystem>().FromStream(file, _playerManager.LocalSession!);
-                var oldProfile = Profile;
-                SetProfile(profile, CharacterSlot);
-
-                IsDirty = !profile.MemberwiseEquals(oldProfile);
-            }
-            catch (Exception exc)
-            {
-                _sawmill.Error($"Error when importing profile\n{exc.StackTrace}");
-            }
-            finally
-            {
-                EndExport();
-            }
-        }
-
-        private async void ExportProfile()
-        {
-            if (Profile == null || _exporting)
-                return;
-
-            StartExport();
-            var file = await _dialogManager.SaveFile(new FileDialogFilters(new FileDialogFilters.Group("yml")));
-
-            if (file == null)
-            {
-                EndExport();
-                return;
-            }
-
-            try
-            {
-                var dataNode = _entManager.System<HumanoidAppearanceSystem>().ToDataNode(Profile);
-                await using var writer = new StreamWriter(file.Value.fileStream);
-                dataNode.Write(writer);
-            }
-            catch (Exception exc)
-            {
-                _sawmill.Error($"Error when exporting profile\n{exc.StackTrace}");
-            }
-            finally
-            {
-                EndExport();
-                await file.Value.fileStream.DisposeAsync();
-            }
-        }
-
-        private void StartExport()
-        {
-            _exporting = true;
-            ImportButton.Disabled = true;
-            ExportButton.Disabled = true;
-        }
-
-        private void EndExport()
-        {
-            _exporting = false;
-            ImportButton.Disabled = false;
-            ExportButton.Disabled = false;
         }
     }
 }
