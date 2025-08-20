@@ -1,8 +1,6 @@
-using System.IO;
 using System.Linq;
 using System.Numerics;
 using Content.Client._MORBIT.Lobby.UI;
-using Content.Client.Humanoid;
 using Content.Client.Lobby.UI.Loadouts;
 using Content.Client.Lobby.UI.Roles;
 using Content.Client.Message;
@@ -47,7 +45,6 @@ namespace Content.Client.Lobby.UI
         private readonly JobRequirementsManager _requirements;
         private readonly SpriteSystem _sprite;
 
-
         // CCvar.
         private int _maxNameLength;
         private bool _allowFlavorText;
@@ -55,7 +52,6 @@ namespace Content.Client.Lobby.UI
         private FlavorText.FlavorText? _flavorText;
         private TextEdit? _flavorTextEdit;
 
-        // One at a time.
         private LoadoutWindow? _loadoutWindow;
         private bool _imaging;
 
@@ -87,7 +83,6 @@ namespace Content.Client.Lobby.UI
             IConfigurationManager configurationManager,
             IEntityManager entManager,
             IFileDialogManager dialogManager,
-            ILogManager logManager,
             IPlayerManager playerManager,
             IPrototypeManager prototypeManager,
             IResourceManager resManager,
