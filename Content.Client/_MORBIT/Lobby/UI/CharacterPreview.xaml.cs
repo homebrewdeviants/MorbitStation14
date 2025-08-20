@@ -7,7 +7,6 @@ using Robust.Client.UserInterface.Controls;
 using Robust.Client.UserInterface.XAML;
 using Robust.Client.Utility;
 using Robust.Shared.Prototypes;
-using YamlDotNet.Core.Tokens;
 
 #pragma warning disable IDE1006
 namespace Content.Client._MORBIT.Lobby.UI;
