@@ -11,7 +11,7 @@ using Robust.Shared.Enums;
 using Robust.Shared.Prototypes;
 
 #pragma warning disable IDE1006
-namespace Content.Client._MORBIT.Lobby.UI;
+namespace Content.Client._MORBIT.Lobby.UI.CharacterEditor.Tabs;
 #pragma warning restore IDE1006
 
 [GenerateTypedNameReferences]
@@ -296,7 +296,7 @@ public sealed partial class ProfileEditorAppearanceTab : BoxContainer
             return;
 
         _profile = _profile.WithGender(newGender);
-        OnProfileUpdated?.Invoke(_profile);
+        OnDirtyUpdated?.Invoke(_profile);
     }
 
     private void SetSpawnPriority(SpawnPriorityPreference newSpawnPriority)

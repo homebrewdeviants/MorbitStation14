@@ -3,7 +3,8 @@
          xmlns:humanoid="clr-namespace:Content.Client.Humanoid"
          xmlns:cc="clr-namespace:Content.Client.Administration.UI.CustomControls"
          xmlns:ui="clr-namespace:Content.Client.Lobby.UI"
-         xmlns:mod="clr-namespace:Content.Client._MORBIT.Lobby.UI"
+         xmlns:mod="clr-namespace:Content.Client._MORBIT.Lobby.UI.CharacterEditor"
+         xmlns:tab="clr-namespace:Content.Client._MORBIT.Lobby.UI.CharacterEditor.Tabs"
          HorizontalExpand="True">
         <!-- Left side -->
         <BoxContainer Orientation="Vertical" Margin="10 10 10 10" HorizontalExpand="True">
@@ -38,7 +39,7 @@
             <!-- tabContainer -->
             <TabContainer Name="TabContainer" VerticalExpand="True">
                 <!-- MORBIT: Make all tabs modular -->
-                <mod:ProfileEditorAppearanceTab Name="AppearanceTab" />
+                <tab:ProfileEditorAppearanceTab Name="AppearanceTab" />
 
                 <BoxContainer Orientation="Vertical">
                     <!-- Jobs -->
