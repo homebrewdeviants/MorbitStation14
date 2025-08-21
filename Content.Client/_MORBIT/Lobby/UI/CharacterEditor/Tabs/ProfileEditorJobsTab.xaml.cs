@@ -179,12 +179,12 @@ public sealed partial class ProfileEditorJobsTab : BoxContainer
                 };
 
                 var jobId = LoadoutSystem.GetJobPrototype(job.ID);
-                var loadoutEnabled = _prototypeManager.TryIndex<RoleLoadoutPrototype>(jobId,
+                var hasLoadout = _prototypeManager.TryIndex<RoleLoadoutPrototype>(jobId,
                     out var roleLoadoutProto);
 
-                loadoutWindowBtn.Disabled = loadoutEnabled;
+                loadoutWindowBtn.Disabled = !hasLoadout;
 
-                if (loadoutEnabled && roleLoadoutProto is not null)
+                if (hasLoadout && roleLoadoutProto is not null)
                 {
                     loadoutWindowBtn.OnPressed += args =>
                     {
