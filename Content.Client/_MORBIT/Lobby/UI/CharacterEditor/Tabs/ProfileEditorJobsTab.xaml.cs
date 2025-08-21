@@ -96,77 +96,24 @@ public sealed partial class ProfileEditorJobsTab : BoxContainer
         JobList.DisposeAllChildren();
         _jobCategories.Clear();
         _jobPriorities.Clear();
-        var firstCategory = true;
 
-        // Get all displayed departments
-        var departments = new List<DepartmentPrototype>();
-        foreach (var department in _prototypeManager.EnumeratePrototypes<DepartmentPrototype>())
-        {
-            if (department.EditorHidden)
-                continue;
-
-            departments.Add(department);
-        }
-
-        departments.Sort(DepartmentUIComparer.Instance);
-
+        var selectedProfile = (HumanoidCharacterProfile?)_preferencesManager.Preferences?.SelectedCharacter;
+        var departments = GetDepartments();
         var items = new[]
         {
-                ("humanoid-profile-editor-job-priority-never-button", (int) JobPriority.Never),
-                ("humanoid-profile-editor-job-priority-low-button", (int) JobPriority.Low),
-                ("humanoid-profile-editor-job-priority-medium-button", (int) JobPriority.Medium),
-                ("humanoid-profile-editor-job-priority-high-button", (int) JobPriority.High),
-            };
+            ("humanoid-profile-editor-job-priority-never-button", (int) JobPriority.Never),
+            ("humanoid-profile-editor-job-priority-low-button", (int) JobPriority.Low),
+            ("humanoid-profile-editor-job-priority-medium-button", (int) JobPriority.Medium),
+            ("humanoid-profile-editor-job-priority-high-button", (int) JobPriority.High),
+        };
 
+        // TODO: Make all this shit another control
         foreach (var department in departments)
         {
-            var departmentName = Loc.GetString(department.Name);
+            var jobs = GetJobs(department);
 
             if (!_jobCategories.TryGetValue(department.ID, out var category))
-            {
-                category = new BoxContainer
-                {
-                    Orientation = LayoutOrientation.Vertical,
-                    Name = department.ID,
-                    ToolTip = Loc.GetString("humanoid-profile-editor-jobs-amount-in-department-tooltip",
-                        ("departmentName", departmentName))
-                };
-
-                if (firstCategory)
-                {
-                    firstCategory = false;
-                }
-                else
-                {
-                    category.AddChild(new Control
-                    {
-                        MinSize = new Vector2(0, 23),
-                    });
-                }
-
-                category.AddChild(new PanelContainer
-                {
-                    PanelOverride = new StyleBoxFlat { BackgroundColor = Color.FromHex("#464966") },
-                    Children =
-                        {
-                            new Label
-                            {
-                                Text = Loc.GetString("humanoid-profile-editor-department-jobs-label",
-                                    ("departmentName", departmentName)),
-                                Margin = new Thickness(5f, 0, 0, 0)
-                            }
-                        }
-                });
-
-                _jobCategories[department.ID] = category;
-                JobList.AddChild(category);
-            }
-
-            var jobs = department.Roles.Select(jobId => _prototypeManager.Index(jobId))
-                .Where(job => job.SetPreference)
-                .ToArray();
-
-            Array.Sort(jobs, JobUIComparer.Instance);
+                category = CreateNewCategory(department);
 
             foreach (var job in jobs)
             {
@@ -187,18 +134,15 @@ public sealed partial class ProfileEditorJobsTab : BoxContainer
                     TextureScale = new Vector2(2, 2),
                     VerticalAlignment = VAlignment.Center
                 };
+
                 var jobIcon = _prototypeManager.Index(job.Icon);
                 icon.Texture = _sprite.Frame0(jobIcon.Icon);
                 selector.Setup(items, job.LocalizedName, 200, job.LocalizedDescription, icon, job.Guides);
 
-                if (!_requirements.IsAllowed(job, (HumanoidCharacterProfile?)_preferencesManager.Preferences?.SelectedCharacter, out var reason))
-                {
+                if (!_requirements.IsAllowed(job, profile: selectedProfile, out var reason))
                     selector.LockRequirements(reason);
-                }
                 else
-                {
                     selector.UnlockRequirements();
-                }
 
                 selector.OnSelected += selectedPrio =>
                 {
@@ -234,16 +178,13 @@ public sealed partial class ProfileEditorJobsTab : BoxContainer
                     Margin = new Thickness(3f, 3f, 0f, 0f),
                 };
 
-                var collection = IoCManager.Instance!;
-                var protoManager = collection.Resolve<IPrototypeManager>();
+                var jobId = LoadoutSystem.GetJobPrototype(job.ID);
+                var loadoutEnabled = _prototypeManager.TryIndex<RoleLoadoutPrototype>(jobId,
+                    out var roleLoadoutProto);
 
-                // If no loadout found then disabled button
-                if (!protoManager.TryIndex<RoleLoadoutPrototype>(LoadoutSystem.GetJobPrototype(job.ID), out var roleLoadoutProto))
-                {
-                    loadoutWindowBtn.Disabled = true;
-                }
-                // else
-                else
+                loadoutWindowBtn.Disabled = loadoutEnabled;
+
+                if (loadoutEnabled && roleLoadoutProto is not null)
                 {
                     loadoutWindowBtn.OnPressed += args =>
                     {
@@ -270,6 +211,61 @@ public sealed partial class ProfileEditorJobsTab : BoxContainer
         }
 
         UpdateJobPriorities();
+    }
+
+    private List<DepartmentPrototype> GetDepartments()
+    {
+        var departments = new List<DepartmentPrototype>();
+        foreach (var department in _prototypeManager.EnumeratePrototypes<DepartmentPrototype>())
+        {
+            if (department.EditorHidden)
+                continue;
+
+            departments.Add(department);
+        }
+
+        departments.Sort(DepartmentUIComparer.Instance);
+        return departments;
+    }
+
+    private JobPrototype[] GetJobs(DepartmentPrototype department)
+    {
+        var jobs = department.Roles.Select(jobId => _prototypeManager.Index(jobId))
+            .Where(job => job.SetPreference)
+            .ToArray();
+
+        Array.Sort(jobs, JobUIComparer.Instance);
+        return jobs;
+    }
+
+    private BoxContainer CreateNewCategory(DepartmentPrototype department)
+    {
+        var departmentName = Loc.GetString(department.Name);
+        var category = new BoxContainer
+        {
+            Orientation = LayoutOrientation.Vertical,
+            Name = department.ID,
+            ToolTip = Loc.GetString("humanoid-profile-editor-jobs-amount-in-department-tooltip",
+                ("departmentName", departmentName)),
+        };
+
+        var categoryHeadingLabel = new Label
+        {
+            Text = Loc.GetString("humanoid-profile-editor-department-jobs-label",
+                ("departmentName", departmentName)),
+            Margin = new Thickness(5f, 0, 0, 0),
+        };
+
+        category.AddChild(new PanelContainer
+        {
+            PanelOverride = new StyleBoxFlat { BackgroundColor = Color.FromHex("#464966") },
+            Children = { categoryHeadingLabel },
+        });
+
+        _jobCategories[department.ID] = category;
+        JobList.AddChild(category);
+
+        return category;
     }
 
     /// <summary>

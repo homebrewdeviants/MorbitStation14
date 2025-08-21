@@ -3,6 +3,6 @@
     Orientation="Vertical">
     <OptionButton Name="PreferenceUnavailableButton" />
     <ScrollContainer VerticalExpand="True">
-        <BoxContainer Name="JobList" Orientation="Vertical" />
+        <BoxContainer Name="JobList" Orientation="Vertical" SeparationOverride="20" />
     </ScrollContainer>
 </BoxContainer>
