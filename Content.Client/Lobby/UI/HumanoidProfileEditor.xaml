@@ -43,13 +43,7 @@
                 <tab:ProfileEditorJobsTab Name="JobsTab" />
                 <tab:ProfileEditorAntagsTab Name="AntagsTab" />
                 <tab:ProfileEditorTraitsTab Name="TraitsTab" />
-
-                <BoxContainer Name="MarkingsTab" Orientation="Vertical" Margin="10">
-                    <!-- Markings -->
-                    <ScrollContainer VerticalExpand="True">
-                        <humanoid:MarkingPicker Name="Markings" IgnoreCategories="Hair,FacialHair" />
-                    </ScrollContainer>
-                </BoxContainer>
+                <tab:ProfileEditorMarkingsTab Name="MarkingsTab" />
             </TabContainer>
         </BoxContainer>
         <!-- Right side -->
