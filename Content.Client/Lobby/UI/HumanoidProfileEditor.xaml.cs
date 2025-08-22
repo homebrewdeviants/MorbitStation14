@@ -19,6 +19,11 @@ namespace Content.Client.Lobby.UI
         private readonly IConfigurationManager _cfgManager;
         private readonly IEntityManager _entManager;
 
+        /// <summary>
+        /// Event that attempts to open a specific guidebook entry.
+        /// </summary>
+        public event Action<List<ProtoId<GuideEntryPrototype>>>? OnOpenGuidebook;
+
         // CCvar.
         private bool _allowFlavorText;
 
@@ -39,8 +44,10 @@ namespace Content.Client.Lobby.UI
         /// </summary>
         public HumanoidCharacterProfile? Profile;
 
-        public event Action<List<ProtoId<GuideEntryPrototype>>>? OnOpenGuidebook;
-
+        /// <summary>
+        /// Whether or not the active profile is different from the saved character profile.
+        /// This is used to determine whether the save and reset buttons are enabled or not.
+        /// </summary>
         public bool IsDirty => ProfileButtons.IsDirty;
 
         public HumanoidProfileEditor(
@@ -73,14 +80,8 @@ namespace Content.Client.Lobby.UI
 
             // PROFILE BUTTONS
 
-            ProfileButtons.OnReset += () =>
-            {
-                var selectedCharacter = _preferencesManager.Preferences?.SelectedCharacter;
-                var selectedIndex = _preferencesManager.Preferences?.SelectedCharacterIndex;
-                SetProfile((HumanoidCharacterProfile?)selectedCharacter, selectedIndex);
-            };
-
             ProfileButtons.OnSaved += () => { Save?.Invoke(); };
+            ProfileButtons.OnReset += ResetToDefault;
             ProfileButtons.OnProfileImported += ImportProfile;
             ProfileButtons.OnExportImage += ExportImage;
 
@@ -186,6 +187,12 @@ namespace Content.Client.Lobby.UI
             RefreshFlavorText();
         }
 
+        protected override void EnteredTree()
+        {
+            base.EnteredTree();
+            ReloadPreview();
+        }
+
         /// <summary>
         /// Refreshes the flavor text editor status.
         /// </summary>
@@ -198,19 +205,44 @@ namespace Content.Client.Lobby.UI
             TabContainer.SetTabVisible(tab: 5, visible: FlavorTextTab.Enabled);
         }
 
+        /// <summary>
+        /// Refreshes the trait list.
+        /// </summary>
         public void RefreshTraits()
         {
             TraitsTab.RefreshTraits();
         }
 
+        /// <summary>
+        /// Refreshes the species selector dropdown.
+        /// </summary>
         public void RefreshSpecies()
         {
             AppearanceTab.RefreshSpecies();
         }
 
+        /// <summary>
+        /// Refreshes all antagonist preference selectors.
+        /// </summary>
         public void RefreshAntags()
         {
             AntagsTab.RefreshAntags();
+        }
+
+        /// <summary>
+        /// Refreshes all loadouts.
+        /// </summary>
+        public void RefreshLoadouts()
+        {
+            JobsTab.RefreshLoadouts();
+        }
+
+        /// <summary>
+        /// Refreshes all job priority selectors.
+        /// </summary>
+        public void RefreshJobs()
+        {
+            JobsTab.RefreshJobs();
         }
 
         private void SetDirty()
@@ -224,22 +256,6 @@ namespace Content.Client.Lobby.UI
 
             // TODO: Check if profile matches default.
             ProfileButtons.IsDirty = true;
-        }
-
-        /// <summary>
-        /// Refresh all loadouts.
-        /// </summary>
-        public void RefreshLoadouts()
-        {
-            JobsTab.RefreshLoadouts();
-        }
-
-        /// <summary>
-        /// Refreshes all job selectors.
-        /// </summary>
-        public void RefreshJobs()
-        {
-            JobsTab.RefreshJobs();
         }
 
         /// <summary>
@@ -270,42 +286,6 @@ namespace Content.Client.Lobby.UI
             CharacterPreview.SetProfile(Profile);
             CharacterPreview.ReloadProfilePreview();
             SetDirty();
-        }
-
-        /// <summary>
-        /// Resets the profile to the defaults.
-        /// </summary>
-        public void ResetToDefault()
-        {
-            SetProfile(
-                (HumanoidCharacterProfile?)_preferencesManager.Preferences?.SelectedCharacter,
-                _preferencesManager.Preferences?.SelectedCharacterIndex);
-        }
-
-        /// <summary>
-        /// Sets the editor to the specified profile with the specified slot.
-        /// </summary>
-        public void SetProfile(HumanoidCharacterProfile? profile, int? slot)
-        {
-            Profile = profile?.Clone();
-            CharacterSlot = slot;
-
-            CharacterPreview.JobOverride = null;
-
-            NameBox.SetProfile(Profile);
-            ProfileButtons.SetProfile(Profile);
-            ProfileButtons.IsDirty = false;
-
-            AppearanceTab.SetProfile(Profile);
-            JobsTab.SetProfile(Profile);
-            AntagsTab.SetProfile(Profile);
-            TraitsTab.SetProfile(Profile);
-            MarkingsTab.SetProfile(Profile);
-            FlavorTextTab.SetProfile(Profile);
-
-            MarkingsTab.UpdateProfile();
-            RefreshFlavorText();
-            ReloadPreview();
         }
 
         // Callback functions for updating the profile without needing to update the entire character.
@@ -344,6 +324,43 @@ namespace Content.Client.Lobby.UI
             SetDirty();
         }
 
+        /// <summary>
+        /// Sets the editor to the specified profile with the specified slot.
+        /// </summary>
+        public void SetProfile(HumanoidCharacterProfile? profile, int? slot)
+        {
+            Profile = profile?.Clone();
+            CharacterSlot = slot;
+
+            CharacterPreview.JobOverride = null;
+
+            NameBox.SetProfile(Profile);
+            ProfileButtons.SetProfile(Profile);
+            ProfileButtons.IsDirty = false;
+
+            AppearanceTab.SetProfile(Profile);
+            JobsTab.SetProfile(Profile);
+            AntagsTab.SetProfile(Profile);
+            TraitsTab.SetProfile(Profile);
+            MarkingsTab.SetProfile(Profile);
+            FlavorTextTab.SetProfile(Profile);
+
+            MarkingsTab.UpdateProfile();
+            RefreshFlavorText();
+            ReloadPreview();
+        }
+
+        /// <summary>
+        /// Resets the profile to the defaults.
+        /// </summary>
+        private void ResetToDefault()
+        {
+            var selectedCharacter = (HumanoidCharacterProfile?)_preferencesManager.Preferences?.SelectedCharacter;
+            var selectedIndex = _preferencesManager.Preferences?.SelectedCharacterIndex;
+
+            SetProfile(selectedCharacter, selectedIndex);
+        }
+
         private void OnMarkingChange(MarkingSet markings)
         {
             if (Profile is null)
@@ -352,12 +369,6 @@ namespace Content.Client.Lobby.UI
             var appearance = Profile.Appearance.WithMarkings(markings.GetForwardEnumerator().ToList());
             Profile = Profile.WithCharacterAppearance(appearance);
             ReloadProfilePreview();
-        }
-
-        protected override void EnteredTree()
-        {
-            base.EnteredTree();
-            ReloadPreview();
         }
 
         private void ImportProfile(HumanoidCharacterProfile profile)
