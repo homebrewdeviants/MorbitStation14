@@ -42,13 +42,8 @@
                 <tab:ProfileEditorAppearanceTab Name="AppearanceTab" />
                 <tab:ProfileEditorJobsTab Name="JobsTab" />
                 <tab:ProfileEditorAntagsTab Name="AntagsTab" />
+                <tab:ProfileEditorTraitsTab Name="TraitsTab" />
 
-                <BoxContainer Orientation="Vertical" Margin="10">
-                    <!-- Traits -->
-                    <ScrollContainer VerticalExpand="True">
-                        <BoxContainer Name="TraitsList" Orientation="Vertical" />
-                    </ScrollContainer>
-                </BoxContainer>
                 <BoxContainer Name="MarkingsTab" Orientation="Vertical" Margin="10">
                     <!-- Markings -->
                     <ScrollContainer VerticalExpand="True">
