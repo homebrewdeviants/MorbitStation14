@@ -168,7 +168,6 @@ namespace Content.Client.Lobby.UI
             {
                 Profile = profile;
                 ReloadPreview();
-                SetDirty();
             };
 
             JobsTab.OnJobOverride += job =>
