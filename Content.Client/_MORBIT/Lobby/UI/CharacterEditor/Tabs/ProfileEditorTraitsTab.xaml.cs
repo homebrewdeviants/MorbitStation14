@@ -34,12 +34,11 @@ public sealed partial class ProfileEditorTraitsTab : BoxContainer
     public void SetProfile(HumanoidCharacterProfile? profile)
     {
         _profile = profile;
-
         RefreshTraits();
     }
 
     /// <summary>
-    /// Refreshes traits selector
+    /// Refreshes trait list, point counts, and categories
     /// </summary>
     public void RefreshTraits()
     {
@@ -49,7 +48,7 @@ public sealed partial class ProfileEditorTraitsTab : BoxContainer
             .OrderBy(t => Loc.GetString(t.Name))
             .ToList();
 
-        if (traits.Count < 1)
+        if (traits.Count == 0)
         {
             TraitsList.AddChild(new Label
             {
@@ -59,90 +58,104 @@ public sealed partial class ProfileEditorTraitsTab : BoxContainer
             return;
         }
 
-        // Setup model
-        Dictionary<string, List<string>> traitGroups = new();
-        List<string> defaultTraits = new();
-        traitGroups.Add(TraitCategoryPrototype.Default, defaultTraits);
+        var traitGroups = GetTraitCategories(traits);
+
+        foreach (var (categoryId, categoryTraits) in traitGroups)
+            CreateTraitCategory(categoryId, categoryTraits);
+    }
+
+    private Dictionary<string, List<TraitPrototype>> GetTraitCategories(List<TraitPrototype> traits)
+    {
+        var traitCategories = new Dictionary<string, List<TraitPrototype>>();
+        var defaultTraits = new List<TraitPrototype>();
+        traitCategories.Add(TraitCategoryPrototype.Default, defaultTraits);
 
         foreach (var trait in traits)
         {
             if (trait.Category == null)
             {
-                defaultTraits.Add(trait.ID);
+                defaultTraits.Add(trait);
                 continue;
             }
 
             if (!_prototypeManager.HasIndex(trait.Category))
                 continue;
 
-            var group = traitGroups.GetOrNew(trait.Category);
-            group.Add(trait.ID);
+            var group = traitCategories.GetOrNew(trait.Category);
+            group.Add(trait);
         }
 
-        // Create UI view from model
-        foreach (var (categoryId, categoryTraits) in traitGroups)
+        return traitCategories;
+    }
+
+    private void CreateTraitCategory(string id, List<TraitPrototype> traits)
+    {
+        TraitCategoryPrototype? category = null;
+
+        if (id != TraitCategoryPrototype.Default)
         {
-            TraitCategoryPrototype? category = null;
-
-            if (categoryId != TraitCategoryPrototype.Default)
+            category = _prototypeManager.Index<TraitCategoryPrototype>(id);
+            TraitsList.AddChild(new Label
             {
-                category = _prototypeManager.Index<TraitCategoryPrototype>(categoryId);
-                // Label
-                TraitsList.AddChild(new Label
-                {
-                    Text = Loc.GetString(category.Name),
-                    Margin = new Thickness(0, 10, 0, 0),
-                    StyleClasses = { StyleBase.StyleClassLabelHeading },
-                });
-            }
-
-            List<TraitPreferenceSelector?> selectors = new();
-            var selectionCount = 0;
-
-            foreach (var traitProto in categoryTraits)
-            {
-                var trait = _prototypeManager.Index<TraitPrototype>(traitProto);
-                var selector = new TraitPreferenceSelector(trait);
-
-                selector.Preference = _profile?.TraitPreferences.Contains(trait.ID) == true;
-                if (selector.Preference)
-                    selectionCount += trait.Cost;
-
-                selector.PreferenceChanged += preference =>
-                {
-                    if (preference)
-                        _profile = _profile?.WithTraitPreference(trait.ID, _prototypeManager);
-                    else
-                        _profile = _profile?.WithoutTraitPreference(trait.ID, _prototypeManager);
-
-                    OnTraitSelected?.Invoke(_profile);
-                    RefreshTraits();
-                };
-                selectors.Add(selector);
-            }
-
-            if (category is { MaxTraitPoints: >= 0 })
-            {
-                TraitsList.AddChild(new Label
-                {
-                    Text = Loc.GetString("humanoid-profile-editor-trait-count-hint", ("current", selectionCount), ("max", category.MaxTraitPoints)),
-                    FontColorOverride = Color.Gray
-                });
-            }
-
-            foreach (var selector in selectors)
-            {
-                if (selector == null)
-                    continue;
-
-                if (category is { MaxTraitPoints: >= 0 } &&
-                    selector.Cost + selectionCount > category.MaxTraitPoints)
-                {
-                    selector.Checkbox.Label.FontColorOverride = Color.Red;
-                }
-
-                TraitsList.AddChild(selector);
-            }
+                Text = Loc.GetString(category.Name),
+                Margin = new Thickness(0, 10, 0, 0),
+                StyleClasses = { StyleBase.StyleClassLabelHeading },
+            });
         }
+
+        var traitSelectors = CreateSelectors(traits, out var selectionCount);
+
+        if (category is { MaxTraitPoints: >= 0 })
+        {
+            TraitsList.AddChild(new Label
+            {
+                Text = Loc.GetString("humanoid-profile-editor-trait-count-hint",
+                    ("current", selectionCount),
+                    ("max", category.MaxTraitPoints)),
+                FontColorOverride = Color.Gray
+            });
+        }
+
+        foreach (var selector in traitSelectors)
+        {
+            if (category is { MaxTraitPoints: >= 0 } &&
+                selector.Cost + selectionCount > category.MaxTraitPoints)
+                selector.Checkbox.Label.FontColorOverride = Color.Red;
+
+            TraitsList.AddChild(selector);
+        }
+    }
+
+    private List<TraitPreferenceSelector> CreateSelectors(List<TraitPrototype> traits, out int selectionCount)
+    {
+        var selectors = new List<TraitPreferenceSelector>();
+        selectionCount = 0;
+
+        foreach (var trait in traits)
+        {
+            var selector = new TraitPreferenceSelector(trait)
+            {
+                Preference = _profile?.TraitPreferences.Contains(trait.ID) == true
+            };
+
+            if (selector.Preference)
+                selectionCount += trait.Cost;
+
+            selector.PreferenceChanged += selected => { SelectTrait(trait, selected); };
+            selectors.Add(selector);
+        }
+
+        return selectors;
+    }
+
+    private void SelectTrait(TraitPrototype trait, bool selected)
+    {
+        if (selected)
+            _profile = _profile?.WithTraitPreference(trait.ID, _prototypeManager);
+        else
+            _profile = _profile?.WithoutTraitPreference(trait.ID, _prototypeManager);
+
+        OnTraitSelected?.Invoke(_profile);
+        RefreshTraits();
     }
 }
