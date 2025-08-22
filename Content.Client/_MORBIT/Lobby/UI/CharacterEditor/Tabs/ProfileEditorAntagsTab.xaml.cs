@@ -30,6 +30,9 @@ public sealed partial class ProfileEditorAntagsTab : BoxContainer
     /// </summary>
     private HumanoidCharacterProfile? _profile;
 
+    private const int YesOption = 0;
+    private const int NoOption = 0;
+
     public ProfileEditorAntagsTab()
     {
         RobustXamlLoader.Load(this);
@@ -51,8 +54,8 @@ public sealed partial class ProfileEditorAntagsTab : BoxContainer
         var selectedProfile = (HumanoidCharacterProfile?)_preferencesManager.Preferences?.SelectedCharacter;
         var items = new[]
         {
-            ("humanoid-profile-editor-antag-preference-yes-button", 0),
-            ("humanoid-profile-editor-antag-preference-no-button", 1)
+            ("humanoid-profile-editor-antag-preference-yes-button", YesOption),
+            ("humanoid-profile-editor-antag-preference-no-button", NoOption)
         };
 
         foreach (var antag in _prototypeManager.EnumeratePrototypes<AntagPrototype>()
@@ -63,12 +66,12 @@ public sealed partial class ProfileEditorAntagsTab : BoxContainer
 
             var prefButtons = new AntagPreferenceButtons(_requirements, _role);
             prefButtons.Setup(antag, items, selectedProfile, hasLoadout: false);
-            prefButtons.Select(_profile?.AntagPreferences.Contains(antag.ID) == true ? 0 : 1);
+            prefButtons.Select(_profile?.AntagPreferences.Contains(antag.ID) == true ? YesOption : NoOption);
 
             prefButtons.OnOpenGuidebook += args => { OnOpenGuidebook?.Invoke(args); };
             prefButtons.OnPreferenceSelected += preference =>
             {
-                _profile = _profile?.WithAntagPreference(antag.ID, preference == 0);
+                _profile = _profile?.WithAntagPreference(antag.ID, preference == YesOption);
                 OnAntagsUpdated?.Invoke(_profile);
             };
 
