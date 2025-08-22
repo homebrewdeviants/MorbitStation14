@@ -1,5 +1,4 @@
 using System.Linq;
-using Content.Client.Message;
 using Content.Client.Sprite;
 using Content.Shared.CCVar;
 using Content.Shared.Guidebook;
@@ -10,7 +9,6 @@ using Robust.Client.UserInterface.Controls;
 using Robust.Client.UserInterface.XAML;
 using Robust.Shared.Configuration;
 using Robust.Shared.Prototypes;
-using Robust.Shared.Utility;
 
 namespace Content.Client.Lobby.UI
 {
@@ -22,7 +20,6 @@ namespace Content.Client.Lobby.UI
         private readonly IEntityManager _entManager;
 
         // CCvar.
-        private int _maxNameLength;
         private bool _allowFlavorText;
 
         private bool _imaging;
@@ -56,16 +53,23 @@ namespace Content.Client.Lobby.UI
             _entManager = entManager;
             _preferencesManager = preferencesManager;
 
-            _maxNameLength = _cfgManager.GetCVar(CCVars.MaxNameLength);
             _allowFlavorText = _cfgManager.GetCVar(CCVars.FlavorText);
 
             // NAME / RANDOMIZE BUTTONS
 
-            NameEdit.OnTextChanged += args => { SetName(args.Text); };
-            NameEdit.IsValid = args => args.Length <= _maxNameLength;
-            NameRandomize.OnPressed += args => RandomizeName();
-            RandomizeEverythingButton.OnPressed += args => { RandomizeEverything(); };
-            WarningLabel.SetMarkup($"[color=red]{Loc.GetString("humanoid-profile-editor-naming-rules-warning")}[/color]");
+            NameBox.OnNameSet += profile =>
+            {
+                if (ProfileButtons.IsDirty)
+                    CharacterPreview.SetName(profile.Name);
+
+                SyncProfileDirty(profile);
+            };
+
+            NameBox.OnRandomizeEverything += () =>
+            {
+                Profile = HumanoidCharacterProfile.Random();
+                SetProfile(Profile, CharacterSlot);
+            };
 
             // PROFILE BUTTONS
 
@@ -287,17 +291,19 @@ namespace Content.Client.Lobby.UI
             CharacterSlot = slot;
 
             CharacterPreview.JobOverride = null;
+
+            NameBox.SetProfile(Profile);
             ProfileButtons.SetProfile(Profile);
+            ProfileButtons.IsDirty = false;
+
             AppearanceTab.SetProfile(Profile);
             JobsTab.SetProfile(Profile);
             AntagsTab.SetProfile(Profile);
             TraitsTab.SetProfile(Profile);
             MarkingsTab.SetProfile(Profile);
             FlavorTextTab.SetProfile(Profile);
-            ProfileButtons.IsDirty = false;
 
             MarkingsTab.UpdateProfile();
-            UpdateNameEdit();
             RefreshFlavorText();
             ReloadPreview();
         }
@@ -352,35 +358,6 @@ namespace Content.Client.Lobby.UI
         {
             base.EnteredTree();
             ReloadPreview();
-        }
-
-        private void SetName(string newName)
-        {
-            Profile = Profile?.WithName(newName);
-            SetDirty();
-
-            if (ProfileButtons.IsDirty)
-                CharacterPreview.SetName(newName);
-        }
-
-        private void UpdateNameEdit()
-        {
-            NameEdit.Text = Profile?.Name ?? "";
-        }
-
-        private void RandomizeEverything()
-        {
-            Profile = HumanoidCharacterProfile.Random();
-            SetProfile(Profile, CharacterSlot);
-            SetDirty();
-        }
-
-        private void RandomizeName()
-        {
-            if (Profile == null) return;
-            var name = HumanoidCharacterProfile.GetName(Profile.Species, Profile.Gender);
-            SetName(name);
-            UpdateNameEdit();
         }
 
         private void ImportProfile(HumanoidCharacterProfile profile)
