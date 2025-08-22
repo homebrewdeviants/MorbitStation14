@@ -268,7 +268,6 @@ public sealed class LobbyUIController : UIController, IOnStateEntered<LobbyState
             _configurationManager,
             EntityManager,
             _prototypeManager,
-            _requirements,
             _markings);
 
         _profileEditor.OnOpenGuidebook += _guide.OpenHelp;

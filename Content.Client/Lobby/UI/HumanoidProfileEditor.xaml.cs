@@ -28,7 +28,6 @@ namespace Content.Client.Lobby.UI
         private readonly IEntityManager _entManager;
         private readonly IPrototypeManager _prototypeManager;
         private readonly MarkingManager _markingManager;
-        private readonly JobRequirementsManager _requirements;
 
         // CCvar.
         private int _maxNameLength;
@@ -63,7 +62,6 @@ namespace Content.Client.Lobby.UI
             IConfigurationManager configurationManager,
             IEntityManager entManager,
             IPrototypeManager prototypeManager,
-            JobRequirementsManager requirements,
             MarkingManager markings)
         {
             RobustXamlLoader.Load(this);
@@ -72,10 +70,19 @@ namespace Content.Client.Lobby.UI
             _prototypeManager = prototypeManager;
             _markingManager = markings;
             _preferencesManager = preferencesManager;
-            _requirements = requirements;
 
             _maxNameLength = _cfgManager.GetCVar(CCVars.MaxNameLength);
             _allowFlavorText = _cfgManager.GetCVar(CCVars.FlavorText);
+
+            // NAME / RANDOMIZE BUTTONS
+
+            NameEdit.OnTextChanged += args => { SetName(args.Text); };
+            NameEdit.IsValid = args => args.Length <= _maxNameLength;
+            NameRandomize.OnPressed += args => RandomizeName();
+            RandomizeEverythingButton.OnPressed += args => { RandomizeEverything(); };
+            WarningLabel.SetMarkup($"[color=red]{Loc.GetString("humanoid-profile-editor-naming-rules-warning")}[/color]");
+
+            // PROFILE BUTTONS
 
             ProfileButtons.OnReset += () =>
             {
@@ -88,19 +95,7 @@ namespace Content.Client.Lobby.UI
             ProfileButtons.OnProfileImported += ImportProfile;
             ProfileButtons.OnExportImage += ExportImage;
 
-            #region Left
-
-            #region Name
-
-            NameEdit.OnTextChanged += args => { SetName(args.Text); };
-            NameEdit.IsValid = args => args.Length <= _maxNameLength;
-            NameRandomize.OnPressed += args => RandomizeName();
-            RandomizeEverythingButton.OnPressed += args => { RandomizeEverything(); };
-            WarningLabel.SetMarkup($"[color=red]{Loc.GetString("humanoid-profile-editor-naming-rules-warning")}[/color]");
-
-            #endregion Name
-
-            #region Appearance
+            // APPEARANCE TAB
 
             TabContainer.SetTabTitle(0, Loc.GetString("humanoid-profile-editor-appearance-tab"));
             AppearanceTab.OnShowClothes += show =>
@@ -165,9 +160,7 @@ namespace Content.Client.Lobby.UI
                 SetDirty();
             };
 
-            #endregion Appearance
-
-            #region Jobs
+            // JOBS TAB
 
             TabContainer.SetTabTitle(1, Loc.GetString("humanoid-profile-editor-jobs-tab"));
 
@@ -194,10 +187,9 @@ namespace Content.Client.Lobby.UI
 
             RefreshJobs();
 
-            #endregion Jobs
+            // ANTAGS TAB
 
             TabContainer.SetTabTitle(2, Loc.GetString("humanoid-profile-editor-antags-tab"));
-            RefreshAntags();
 
             AntagsTab.OnAntagsUpdated += profile =>
             {
@@ -207,9 +199,13 @@ namespace Content.Client.Lobby.UI
 
             AntagsTab.OnOpenGuidebook += args => { OnOpenGuidebook?.Invoke(args); };
 
+            RefreshAntags();
+
+            // TRAITS TAB
+
             RefreshTraits();
 
-            #region Markings
+            // MARKINGS TAB
 
             TabContainer.SetTabTitle(4, Loc.GetString("humanoid-profile-editor-markings-tab"));
 
@@ -218,11 +214,10 @@ namespace Content.Client.Lobby.UI
             Markings.OnMarkingColorChange += OnMarkingChange;
             Markings.OnMarkingRankChange += OnMarkingChange;
 
-            #endregion Markings
+            // FLAVOR TEXT TAB
 
             RefreshFlavorText();
 
-            #endregion Left
         }
 
         /// <summary>
