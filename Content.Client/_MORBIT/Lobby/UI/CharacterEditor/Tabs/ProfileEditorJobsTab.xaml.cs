@@ -1,6 +1,5 @@
 using System.Linq;
 using Content.Client.Lobby;
-using Content.Client.Lobby.UI.Loadouts;
 using Content.Client.Lobby.UI.Roles;
 using Content.Client.Players.PlayTimeTracking;
 using Content.Shared.Clothing;
@@ -43,7 +42,6 @@ public sealed partial class ProfileEditorJobsTab : BoxContainer
     /// The work in progress profile being edited.
     /// </summary>
     private HumanoidCharacterProfile? _profile;
-    private LoadoutWindow? _loadoutWindow;
 
     private List<(string, RequirementsSelector)> _jobPriorities = new();
     private readonly Dictionary<string, BoxContainer> _jobCategories = new();
@@ -66,13 +64,6 @@ public sealed partial class ProfileEditorJobsTab : BoxContainer
             OnProfileUpdated?.Invoke(_profile);
         };
 
-    }
-
-    protected override void ExitedTree()
-    {
-        base.ExitedTree();
-        _loadoutWindow?.Close();
-        _loadoutWindow = null;
     }
 
     public void SetProfile(HumanoidCharacterProfile? profile)
@@ -188,30 +179,6 @@ public sealed partial class ProfileEditorJobsTab : BoxContainer
         return category;
     }
 
-    private void OnJobLoadoutPressed(JobPrototype job, string jobID, RoleLoadoutPrototype roleLoadout)
-    {
-        RoleLoadout? loadout = null;
-
-        if (_profile?.Loadouts.TryGetValue(jobID, out var existingLoadout) == true)
-            loadout = existingLoadout.Clone();
-
-        if (loadout is null)
-        {
-            loadout = new RoleLoadout(roleLoadout.ID);
-            loadout.SetDefault(_profile, _playerManager.LocalSession, _prototypeManager);
-        }
-
-        OpenLoadout(job, loadout, roleLoadout);
-    }
-
-    /// <summary>
-    /// Refresh all loadouts.
-    /// </summary>
-    public void RefreshLoadouts()
-    {
-        _loadoutWindow?.Close();
-    }
-
     /// <summary>
     /// Syncs selected job priorities to the profile's.
     /// </summary>
@@ -222,71 +189,6 @@ public sealed partial class ProfileEditorJobsTab : BoxContainer
             var priority = _profile?.JobPriorities.GetValueOrDefault(jobId, JobPriority.Never) ?? JobPriority.Never;
             prioritySelector.Select((int)priority);
         }
-    }
-
-    private void OpenLoadout(JobPrototype? jobProto, RoleLoadout roleLoadout, RoleLoadoutPrototype roleLoadoutProto)
-    {
-        _loadoutWindow?.Close();
-        _loadoutWindow = null;
-
-        var collection = IoCManager.Instance;
-        if (collection is null || _playerManager.LocalSession is null || _profile is null)
-            return;
-
-        CreateLoadoutWindow(jobProto, roleLoadout, roleLoadoutProto, collection);
-        if (_loadoutWindow is null)
-            return;
-
-        _loadoutWindow.RefreshLoadouts(roleLoadout, _playerManager.LocalSession, collection);
-        _loadoutWindow.OpenCenteredLeft();
-        OnJobOverride?.Invoke(jobProto);
-
-        if (_profile is not null)
-            UpdateJobPriorities();
-    }
-
-    private void CreateLoadoutWindow(JobPrototype? jobProto,
-        RoleLoadout roleLoadout,
-        RoleLoadoutPrototype roleLoadoutProto,
-        IDependencyCollection collection)
-    {
-        var session = _playerManager.LocalSession;
-        if (collection is null || session is null || _profile is null)
-            return;
-
-        _loadoutWindow = new LoadoutWindow(_profile,
-            roleLoadout,
-            roleLoadoutProto,
-            session,
-            collection)
-        {
-            Title = Loc.GetString("loadout-window-title-loadout", ("job", $"{jobProto?.LocalizedName}")),
-        };
-
-        _loadoutWindow.OnNameChanged += name =>
-        {
-            roleLoadout.EntityName = name;
-            _profile = _profile.WithLoadout(roleLoadout);
-            OnProfileUpdated?.Invoke(_profile);
-        };
-
-        _loadoutWindow.OnLoadoutPressed += (loadoutGroup, loadoutProto) =>
-        {
-            roleLoadout.AddLoadout(loadoutGroup, loadoutProto, _prototypeManager);
-            _loadoutWindow.RefreshLoadouts(roleLoadout, session, collection);
-            _profile = _profile?.WithLoadout(roleLoadout);
-            OnJobUpdated?.Invoke(_profile);
-        };
-
-        _loadoutWindow.OnLoadoutUnpressed += (loadoutGroup, loadoutProto) =>
-        {
-            roleLoadout.RemoveLoadout(loadoutGroup, loadoutProto, _prototypeManager);
-            _loadoutWindow.RefreshLoadouts(roleLoadout, session, collection);
-            _profile = _profile?.WithLoadout(roleLoadout);
-            OnJobUpdated?.Invoke(_profile);
-        };
-
-        _loadoutWindow.OnClose += () => { OnJobOverride?.Invoke(null); };
     }
 
     private void SelectJobPriority(JobPrototype job, int priority)
