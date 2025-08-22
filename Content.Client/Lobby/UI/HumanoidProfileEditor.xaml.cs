@@ -25,9 +25,6 @@ namespace Content.Client.Lobby.UI
         private int _maxNameLength;
         private bool _allowFlavorText;
 
-        private FlavorText.FlavorText? _flavorText;
-        private TextEdit? _flavorTextEdit;
-
         private bool _imaging;
 
         /// <summary>
@@ -175,6 +172,13 @@ namespace Content.Client.Lobby.UI
 
             // FLAVOR TEXT TAB
 
+            TabContainer.SetTabTitle(5, Loc.GetString("humanoid-profile-editor-flavortext-tab"));
+            FlavorTextTab.OnFlavorTextChanged += profile =>
+            {
+                if (_allowFlavorText)
+                    SyncProfileDirty(profile);
+            };
+
             RefreshFlavorText();
         }
 
@@ -183,28 +187,11 @@ namespace Content.Client.Lobby.UI
         /// </summary>
         public void RefreshFlavorText()
         {
-            if (_allowFlavorText)
-            {
-                if (_flavorText != null)
-                    return;
+            if (_allowFlavorText == FlavorTextTab.Enabled)
+                return;
 
-                _flavorText = new FlavorText.FlavorText();
-                TabContainer.AddChild(_flavorText);
-                TabContainer.SetTabTitle(TabContainer.ChildCount - 1, Loc.GetString("humanoid-profile-editor-flavortext-tab"));
-                _flavorTextEdit = _flavorText.CFlavorTextInput;
-
-                _flavorText.OnFlavorTextChanged += OnFlavorTextChange;
-            }
-            else
-            {
-                if (_flavorText == null)
-                    return;
-
-                TabContainer.RemoveChild(_flavorText);
-                _flavorText.OnFlavorTextChanged -= OnFlavorTextChange;
-                _flavorTextEdit = null;
-                _flavorText = null;
-            }
+            FlavorTextTab.Enabled = _allowFlavorText;
+            TabContainer.SetTabVisible(tab: 5, visible: FlavorTextTab.Enabled);
         }
 
         public void RefreshTraits()
@@ -306,12 +293,11 @@ namespace Content.Client.Lobby.UI
             AntagsTab.SetProfile(Profile);
             TraitsTab.SetProfile(Profile);
             MarkingsTab.SetProfile(Profile);
-            MarkingsTab.UpdateProfile();
+            FlavorTextTab.SetProfile(Profile);
             ProfileButtons.IsDirty = false;
 
+            MarkingsTab.UpdateProfile();
             UpdateNameEdit();
-            UpdateFlavorTextEdit();
-
             RefreshFlavorText();
             ReloadPreview();
         }
@@ -352,15 +338,6 @@ namespace Content.Client.Lobby.UI
             SetDirty();
         }
 
-        private void OnFlavorTextChange(string content)
-        {
-            if (Profile is null)
-                return;
-
-            Profile = Profile.WithFlavorText(content);
-            SetDirty();
-        }
-
         private void OnMarkingChange(MarkingSet markings)
         {
             if (Profile is null)
@@ -389,14 +366,6 @@ namespace Content.Client.Lobby.UI
         private void UpdateNameEdit()
         {
             NameEdit.Text = Profile?.Name ?? "";
-        }
-
-        private void UpdateFlavorTextEdit()
-        {
-            if (_flavorTextEdit != null)
-            {
-                _flavorTextEdit.TextRope = new Rope.Leaf(Profile?.FlavorText ?? "");
-            }
         }
 
         private void RandomizeEverything()
