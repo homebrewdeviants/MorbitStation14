@@ -137,6 +137,7 @@ namespace Content.Client.Lobby.UI
             };
 
             AppearanceTab.OnDirtyUpdated += SyncProfileDirty;
+            AppearanceTab.OnOpenGuidebook += args => { OnOpenGuidebook?.Invoke(args); };
 
             // JOBS TAB
 

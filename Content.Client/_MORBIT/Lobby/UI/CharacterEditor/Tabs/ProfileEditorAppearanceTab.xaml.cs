@@ -28,6 +28,7 @@ public sealed partial class ProfileEditorAppearanceTab : BoxContainer
     public event Action<HumanoidCharacterProfile>? OnSpeciesUpdated;
     public event Action<HumanoidCharacterProfile>? OnSexUpdated;
     public event Action<HumanoidCharacterProfile>? OnDirtyUpdated;
+    public event Action<List<ProtoId<GuideEntryPrototype>>>? OnOpenGuidebook;
 
     /// <summary>
     /// The work in progress profile being edited.
@@ -51,7 +52,9 @@ public sealed partial class ProfileEditorAppearanceTab : BoxContainer
 
         foreach (var value in Enum.GetValues<SpawnPriorityPreference>())
         {
-            SpawnPriorityButton.AddItem(Loc.GetString($"humanoid-profile-editor-preference-spawn-priority-{value.ToString().ToLower()}"), (int)value);
+            var prioKey = value.ToString().ToLower();
+            var prioText = Loc.GetString($"humanoid-profile-editor-preference-spawn-priority-{prioKey}");
+            SpawnPriorityButton.AddItem(prioText, (int)value);
         }
 
         SexButton.OnItemSelected += args =>
@@ -121,23 +124,14 @@ public sealed partial class ProfileEditorAppearanceTab : BoxContainer
 
     private void OnSpeciesInfoButtonPressed(BaseButton.ButtonEventArgs args)
     {
-        // TODO GUIDEBOOK
-        // make the species guide book a field on the species prototype.
-        // I.e., do what jobs/antags do.
-
-        var guidebookController = UserInterfaceManager.GetUIController<GuidebookUIController>();
         var species = _profile?.Species ?? SharedHumanoidAppearanceSystem.DefaultSpecies;
         var page = DefaultSpeciesGuidebook;
-        if (_prototypeManager.HasIndex<GuideEntryPrototype>(species))
-            page = new ProtoId<GuideEntryPrototype>(species.Id); // Gross. See above todo comment.
 
-        if (_prototypeManager.TryIndex(DefaultSpeciesGuidebook, out var guideRoot))
-        {
-            var dict = new Dictionary<ProtoId<GuideEntryPrototype>, GuideEntry>();
-            dict.Add(DefaultSpeciesGuidebook, guideRoot);
-            //TODO: Don't close the guidebook if its already open, just go to the correct page
-            guidebookController.OpenGuidebook(dict, includeChildren: true, selected: page);
-        }
+        // TODO: Make this a field on SpeciesPrototype and use that instead
+        if (_prototypeManager.HasIndex<GuideEntryPrototype>(species))
+            page = new ProtoId<GuideEntryPrototype>(species.Id);
+
+        OnOpenGuidebook?.Invoke(new() { page });
     }
 
     public void SetProfile(HumanoidCharacterProfile? profile)
@@ -155,6 +149,7 @@ public sealed partial class ProfileEditorAppearanceTab : BoxContainer
         UpdateGenderControls();
         UpdateSpawnPriorityControls();
         UpdateAgeEdit();
+        UpdateSpeciesGuidebookIcon();
         RefreshSpecies();
     }
 
