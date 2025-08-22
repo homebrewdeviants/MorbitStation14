@@ -40,7 +40,7 @@ public sealed partial class JobPreferenceButtons : BoxContainer
         _sprite = sprite;
 
         PrioritySelector.OnOpenGuidebook += args => { OnOpenGuidebook?.Invoke(args); };
-        PrioritySelector.OnSelected += OnPrioritySelected;
+        PrioritySelector.OnSelected += args => { OnPrioritySelected?.Invoke(args); };
     }
 
     public void Setup(JobPrototype job,
