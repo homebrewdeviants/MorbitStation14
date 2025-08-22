@@ -87,7 +87,6 @@ public sealed partial class ProfileEditorJobsTab : BoxContainer
         _jobPriorities.Clear();
 
         var selectedProfile = (HumanoidCharacterProfile?)_preferencesManager.Preferences?.SelectedCharacter;
-        var departments = GetDepartments();
         var items = new[]
         {
             ("humanoid-profile-editor-job-priority-never-button", (int) JobPriority.Never),
@@ -96,14 +95,12 @@ public sealed partial class ProfileEditorJobsTab : BoxContainer
             ("humanoid-profile-editor-job-priority-high-button", (int) JobPriority.High),
         };
 
-        foreach (var department in departments)
+        foreach (var department in GetDepartments())
         {
-            var jobs = GetJobs(department);
-
             if (!_jobCategories.TryGetValue(department.ID, out var category))
                 category = CreateNewCategory(department);
 
-            foreach (var job in jobs)
+            foreach (var job in GetJobs(department))
             {
                 var prefButtons = new JobPreferenceButtons(_prototypeManager, _requirements, _sprite);
                 var jobId = LoadoutSystem.GetJobPrototype(job.ID);
@@ -124,29 +121,19 @@ public sealed partial class ProfileEditorJobsTab : BoxContainer
         UpdateJobPriorities();
     }
 
-    private List<DepartmentPrototype> GetDepartments()
+    private IEnumerable<DepartmentPrototype> GetDepartments()
     {
-        var departments = new List<DepartmentPrototype>();
-        foreach (var department in _prototypeManager.EnumeratePrototypes<DepartmentPrototype>())
-        {
-            if (department.EditorHidden)
-                continue;
-
-            departments.Add(department);
-        }
-
-        departments.Sort(DepartmentUIComparer.Instance);
-        return departments;
+        return _prototypeManager.EnumeratePrototypes<DepartmentPrototype>()
+            .Where(department => !department.EditorHidden)
+            .OrderBy(department => department, DepartmentUIComparer.Instance);
     }
 
-    private JobPrototype[] GetJobs(DepartmentPrototype department)
+    private IEnumerable<JobPrototype> GetJobs(DepartmentPrototype department)
     {
-        var jobs = department.Roles.Select(jobId => _prototypeManager.Index(jobId))
+        return department.Roles
+            .Select(jobId => _prototypeManager.Index(jobId))
             .Where(job => job.SetPreference)
-            .ToArray();
-
-        Array.Sort(jobs, JobUIComparer.Instance);
-        return jobs;
+            .OrderBy(job => job, JobUIComparer.Instance);
     }
 
     private BoxContainer CreateNewCategory(DepartmentPrototype department)
