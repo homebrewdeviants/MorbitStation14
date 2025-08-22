@@ -266,9 +266,7 @@ public sealed class LobbyUIController : UIController, IOnStateEntered<LobbyState
         _profileEditor = new HumanoidProfileEditor(
             _preferencesManager,
             _configurationManager,
-            EntityManager,
-            _prototypeManager,
-            _markings);
+            EntityManager);
 
         _profileEditor.OnOpenGuidebook += _guide.OpenHelp;
 

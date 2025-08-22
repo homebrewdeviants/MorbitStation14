@@ -20,8 +20,6 @@ namespace Content.Client.Lobby.UI
         private readonly IClientPreferencesManager _preferencesManager;
         private readonly IConfigurationManager _cfgManager;
         private readonly IEntityManager _entManager;
-        private readonly IPrototypeManager _prototypeManager;
-        private readonly MarkingManager _markingManager;
 
         // CCvar.
         private int _maxNameLength;
@@ -54,15 +52,11 @@ namespace Content.Client.Lobby.UI
         public HumanoidProfileEditor(
             IClientPreferencesManager preferencesManager,
             IConfigurationManager configurationManager,
-            IEntityManager entManager,
-            IPrototypeManager prototypeManager,
-            MarkingManager markings)
+            IEntityManager entManager)
         {
             RobustXamlLoader.Load(this);
             _cfgManager = configurationManager;
             _entManager = entManager;
-            _prototypeManager = prototypeManager;
-            _markingManager = markings;
             _preferencesManager = preferencesManager;
 
             _maxNameLength = _cfgManager.GetCVar(CCVars.MaxNameLength);
