@@ -1,6 +1,5 @@
 using System.Linq;
 using Content.Client.Lobby;
-using Content.Client.Lobby.UI.Roles;
 using Content.Client.Players.PlayTimeTracking;
 using Content.Shared.Guidebook;
 using Content.Shared.Preferences;
@@ -21,6 +20,7 @@ public sealed partial class ProfileEditorAntagsTab : BoxContainer
     [Dependency] private readonly IClientPreferencesManager _preferencesManager = default!;
     [Dependency] private readonly IPrototypeManager _prototypeManager = default!;
     [Dependency] private readonly JobRequirementsManager _requirements = default!;
+    private readonly SharedRoleSystem _role;
 
     public event Action<HumanoidCharacterProfile?>? OnAntagsUpdated;
     public event Action<List<ProtoId<GuideEntryPrototype>>>? OnOpenGuidebook;
@@ -34,6 +34,8 @@ public sealed partial class ProfileEditorAntagsTab : BoxContainer
     {
         RobustXamlLoader.Load(this);
         IoCManager.InjectDependencies(this);
+
+        _role = _entManager.System<SharedRoleSystem>();
     }
 
     public void SetProfile(HumanoidCharacterProfile? profile)
@@ -45,6 +47,8 @@ public sealed partial class ProfileEditorAntagsTab : BoxContainer
     public void RefreshAntags()
     {
         AntagList.DisposeAllChildren();
+
+        var selectedProfile = (HumanoidCharacterProfile?)_preferencesManager.Preferences?.SelectedCharacter;
         var items = new[]
         {
             ("humanoid-profile-editor-antag-preference-yes-button", 0),
@@ -57,54 +61,18 @@ public sealed partial class ProfileEditorAntagsTab : BoxContainer
             if (!antag.SetPreference)
                 continue;
 
-            var antagContainer = new BoxContainer()
-            {
-                Orientation = LayoutOrientation.Horizontal,
-            };
+            var prefButtons = new AntagPreferenceButtons(_requirements, _role);
+            prefButtons.Setup(antag, items, selectedProfile, hasLoadout: false);
+            prefButtons.Select(_profile?.AntagPreferences.Contains(antag.ID) == true ? 0 : 1);
 
-            var selector = new RequirementsSelector()
-            {
-                Margin = new Thickness(3f, 3f, 3f, 0f),
-            };
-
-            selector.OnOpenGuidebook += OnOpenGuidebook;
-
-            var title = Loc.GetString(antag.Name);
-            var description = Loc.GetString(antag.Objective);
-            selector.Setup(items, title, 250, description, guides: antag.Guides);
-            selector.Select(_profile?.AntagPreferences.Contains(antag.ID) == true ? 0 : 1);
-
-            var selectedProfile = (HumanoidCharacterProfile?)_preferencesManager.Preferences?.SelectedCharacter;
-            var requirements = _entManager.System<SharedRoleSystem>().GetAntagRequirement(antag);
-
-            if (!_requirements.CheckRoleRequirements(requirements, selectedProfile, out var reason))
-            {
-                selector.LockRequirements(reason);
-                _profile = _profile?.WithAntagPreference(antag.ID, false);
-                OnAntagsUpdated?.Invoke(_profile);
-            }
-            else
-            {
-                selector.UnlockRequirements();
-            }
-
-            selector.OnSelected += preference =>
+            prefButtons.OnOpenGuidebook += args => { OnOpenGuidebook?.Invoke(args); };
+            prefButtons.OnPreferenceSelected += preference =>
             {
                 _profile = _profile?.WithAntagPreference(antag.ID, preference == 0);
                 OnAntagsUpdated?.Invoke(_profile);
             };
 
-            antagContainer.AddChild(selector);
-
-            antagContainer.AddChild(new Button()
-            {
-                Disabled = true,
-                Text = Loc.GetString("loadout-window"),
-                HorizontalAlignment = HAlignment.Right,
-                Margin = new Thickness(3f, 0f, 0f, 0f),
-            });
-
-            AntagList.AddChild(antagContainer);
+            AntagList.AddChild(prefButtons);
         }
     }
 }

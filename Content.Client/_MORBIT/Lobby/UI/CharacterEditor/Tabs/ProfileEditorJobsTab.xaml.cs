@@ -110,7 +110,7 @@ public sealed partial class ProfileEditorJobsTab : BoxContainer
                 var hasLoadout = _prototypeManager.TryIndex<RoleLoadoutPrototype>(jobId, out var roleLoadout);
 
                 prefButtons.Setup(job, items, selectedProfile, hasLoadout);
-                prefButtons.OnOpenGuidebook += OnOpenGuidebook;
+                prefButtons.OnOpenGuidebook += args => { OnOpenGuidebook?.Invoke(args); };
                 prefButtons.OnPrioritySelected += selectedPrio => { SelectJobPriority(job, selectedPrio); };
 
                 if (hasLoadout && roleLoadout is not null)
