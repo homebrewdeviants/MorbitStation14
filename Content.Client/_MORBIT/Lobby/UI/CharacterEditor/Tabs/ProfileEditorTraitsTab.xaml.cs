@@ -45,10 +45,9 @@ public sealed partial class ProfileEditorTraitsTab : BoxContainer
         TraitsList.DisposeAllChildren();
 
         var traits = _prototypeManager.EnumeratePrototypes<TraitPrototype>()
-            .OrderBy(t => Loc.GetString(t.Name))
-            .ToList();
+            .OrderBy(t => Loc.GetString(t.Name));
 
-        if (traits.Count == 0)
+        if (!traits.Any())
         {
             TraitsList.AddChild(new Label
             {
@@ -58,13 +57,11 @@ public sealed partial class ProfileEditorTraitsTab : BoxContainer
             return;
         }
 
-        var traitGroups = GetTraitCategories(traits);
-
-        foreach (var (categoryId, categoryTraits) in traitGroups)
+        foreach (var (categoryId, categoryTraits) in GetTraitCategories(traits))
             CreateTraitCategory(categoryId, categoryTraits);
     }
 
-    private Dictionary<string, List<TraitPrototype>> GetTraitCategories(List<TraitPrototype> traits)
+    private Dictionary<string, List<TraitPrototype>> GetTraitCategories(IEnumerable<TraitPrototype> traits)
     {
         var traitCategories = new Dictionary<string, List<TraitPrototype>>();
         var defaultTraits = new List<TraitPrototype>();
