@@ -11,7 +11,7 @@ using Robust.Shared.Prototypes;
 using Robust.Shared.Utility;
 
 #pragma warning disable IDE1006
-namespace Content.Client._MORBIT.Lobby.UI;
+namespace Content.Client._MORBIT.Lobby.UI.CharacterEditor;
 #pragma warning restore IDE1006
 
 [GenerateTypedNameReferences]
