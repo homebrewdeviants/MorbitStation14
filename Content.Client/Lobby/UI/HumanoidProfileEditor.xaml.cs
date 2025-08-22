@@ -92,84 +92,61 @@ namespace Content.Client.Lobby.UI
             // APPEARANCE TAB
 
             TabContainer.SetTabTitle(0, Loc.GetString("humanoid-profile-editor-appearance-tab"));
+            AppearanceTab.OnProfileUpdated += SyncProfile;
+
             AppearanceTab.OnShowClothes += show =>
             {
                 CharacterPreview.ShowClothes = show;
                 ReloadPreview();
             };
 
-            AppearanceTab.OnProfileUpdated += profile =>
-            {
-                Profile = profile;
-                ReloadPreview();
-            };
-
             AppearanceTab.OnSkinColorUpdated += profile =>
             {
-                Profile = profile;
                 MarkingsTab.SetSkinColor(profile.Appearance.SkinColor);
-                ReloadProfilePreview();
+                SyncProfilePreview(profile);
             };
 
             AppearanceTab.OnEyeColorUpdated += profile =>
             {
-                Profile = profile;
-                MarkingsTab.SetEyeColor(Profile.Appearance.EyeColor);
-                ReloadProfilePreview();
+                MarkingsTab.SetEyeColor(profile.Appearance.EyeColor);
+                SyncProfilePreview(profile);
             };
 
             AppearanceTab.OnHairUpdated += profile =>
             {
-                Profile = profile;
+                MarkingsTab.SetProfile(profile);
                 MarkingsTab.UpdateHair();
-                ReloadProfilePreview();
+                SyncProfilePreview(profile);
             };
 
             AppearanceTab.OnFacialHairUpdated += profile =>
             {
-                Profile = profile;
+                MarkingsTab.SetProfile(profile);
                 MarkingsTab.UpdateFacialHair();
-                ReloadProfilePreview();
+                SyncProfilePreview(profile);
             };
 
             AppearanceTab.OnSpeciesUpdated += profile =>
             {
-                Profile = profile;
                 MarkingsTab.SetSpecies(profile.Species);
                 RefreshJobs();
                 RefreshLoadouts();
-                ReloadPreview();
+                SyncProfile(profile);
             };
 
             AppearanceTab.OnSexUpdated += profile =>
             {
-                Profile = profile;
                 MarkingsTab.SetSex(profile.Sex);
-                ReloadPreview();
+                SyncProfilePreview(profile);
             };
 
-            AppearanceTab.OnDirtyUpdated += profile =>
-            {
-                Profile = profile;
-                SetDirty();
-            };
+            AppearanceTab.OnDirtyUpdated += SyncProfileDirty;
 
             // JOBS TAB
 
             TabContainer.SetTabTitle(1, Loc.GetString("humanoid-profile-editor-jobs-tab"));
-
-            JobsTab.OnProfileUpdated += profile =>
-            {
-                Profile = profile;
-                SetDirty();
-            };
-
-            JobsTab.OnJobUpdated += profile =>
-            {
-                Profile = profile;
-                ReloadPreview();
-            };
-
+            JobsTab.OnProfileUpdated += SyncProfileDirty;
+            JobsTab.OnJobUpdated += SyncProfile;
             JobsTab.OnJobOverride += job =>
             {
                 CharacterPreview.JobOverride = job;
@@ -183,27 +160,14 @@ namespace Content.Client.Lobby.UI
             // ANTAGS TAB
 
             TabContainer.SetTabTitle(2, Loc.GetString("humanoid-profile-editor-antags-tab"));
-
-            AntagsTab.OnAntagsUpdated += profile =>
-            {
-                Profile = profile;
-                SetDirty();
-            };
-
+            AntagsTab.OnAntagsUpdated += SyncProfileDirty;
             AntagsTab.OnOpenGuidebook += args => { OnOpenGuidebook?.Invoke(args); };
-
             RefreshAntags();
 
             // TRAITS TAB
 
             TabContainer.SetTabTitle(3, Loc.GetString("humanoid-profile-editor-traits-tab"));
-
-            TraitsTab.OnTraitSelected += profile =>
-            {
-                Profile = profile;
-                SetDirty();
-            };
-
+            TraitsTab.OnTraitSelected += SyncProfileDirty;
             RefreshTraits();
 
             // MARKINGS TAB
@@ -218,7 +182,6 @@ namespace Content.Client.Lobby.UI
             // FLAVOR TEXT TAB
 
             RefreshFlavorText();
-
         }
 
         /// <summary>
@@ -298,12 +261,29 @@ namespace Content.Client.Lobby.UI
         /// Reloads the entire dummy entity for preview.
         /// </summary>
         /// <remarks>
-        /// This is expensive so not recommended to run if you have a slider.
+        /// This function is expensive because it has to delete and recreate the preview entity entirely. Do not use
+        /// this for slider updates because it will lag like crazy. This function should only be used for when the
+        /// preview entity needs to change prototypes. For example, changing species uses this function
+        /// because different species dummies have different prototypes and components.
         /// </remarks>
         private void ReloadPreview()
         {
             CharacterPreview.SetProfile(Profile);
             CharacterPreview.ReloadPreview();
+            SetDirty();
+        }
+
+        /// <summary>
+        /// Reloads the appearance of the dummy entity.
+        /// </summary>
+        /// <remarks>
+        /// This function is much cheaper than <see cref="ReloadPreview"/>, because it only updates the dummy's
+        /// appearance (LoadProfile). Great for updating markings and color sliders, including hair and facial hair.
+        /// </remarks>
+        private void ReloadProfilePreview()
+        {
+            CharacterPreview.SetProfile(Profile);
+            CharacterPreview.ReloadProfilePreview();
             SetDirty();
         }
 
@@ -332,6 +312,7 @@ namespace Content.Client.Lobby.UI
             AntagsTab.SetProfile(Profile);
             TraitsTab.SetProfile(Profile);
             MarkingsTab.SetProfile(Profile);
+            MarkingsTab.UpdateProfile();
             ProfileButtons.IsDirty = false;
 
             UpdateNameEdit();
@@ -341,13 +322,39 @@ namespace Content.Client.Lobby.UI
             ReloadPreview();
         }
 
+        // Callback functions for updating the profile without needing to update the entire character.
+
         /// <summary>
-        /// A slim reload that only updates the entity itself and not any of the job entities, etc.
+        ///     Sets the current profile and calls for a refresh of the preview entity.
+        ///     Also calls <see cref="SetDirty"/>; See <see cref="ReloadPreview"/>. Good for prototype changes.
         /// </summary>
-        private void ReloadProfilePreview()
+        /// <param name="profile">The profile to sync to.</param>
+        private void SyncProfile(HumanoidCharacterProfile? profile)
         {
-            CharacterPreview.SetProfile(Profile);
-            CharacterPreview.ReloadProfilePreview();
+            Profile = profile;
+            ReloadPreview();
+        }
+
+        /// <summary>
+        ///     Sets the current profile and calls for a reload of the preview entity's appearance only.
+        ///     Also calls <see cref="SetDirty"/>; See <see cref="ReloadProfilePreview"/>. Good for markings.
+        /// </summary>
+        /// <param name="profile"></param>
+        private void SyncProfilePreview(HumanoidCharacterProfile? profile)
+        {
+            Profile = profile;
+            ReloadProfilePreview();
+        }
+
+        /// <summary>
+        ///     Sets the current profile and calls for an update of the save/reset buttons.
+        ///     See <see cref="SetDirty"/>. Good for anything that does not affect the base appearance of the character,
+        ///     such as age, traits, or antag preferences.
+        /// </summary>
+        /// <param name="profile"></param>
+        private void SyncProfileDirty(HumanoidCharacterProfile? profile)
+        {
+            Profile = profile;
             SetDirty();
         }
 

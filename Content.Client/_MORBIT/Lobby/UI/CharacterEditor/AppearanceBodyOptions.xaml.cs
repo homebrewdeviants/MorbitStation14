@@ -185,7 +185,7 @@ public sealed partial class AppearanceBodyOptions : BoxContainer
         OnSkinColorUpdated?.Invoke(_profile);
     }
 
-    public void UpdateSkinColorSliders()
+    private void UpdateSkinColorSliders()
     {
         if (_profile == null)
             return;
@@ -214,7 +214,7 @@ public sealed partial class AppearanceBodyOptions : BoxContainer
         RgbSkinColorContainer.Visible = useRgb;
     }
 
-    public void UpdateEyePickers()
+    private void UpdateEyePickers()
     {
         if (_profile == null)
             return;

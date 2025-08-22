@@ -41,6 +41,10 @@ public sealed partial class ProfileEditorMarkingsTab : BoxContainer
     public void SetProfile(HumanoidCharacterProfile? profile)
     {
         _profile = profile;
+    }
+
+    public void UpdateProfile()
+    {
         UpdateEyePickers();
         UpdateMarkings();
         UpdateHair();

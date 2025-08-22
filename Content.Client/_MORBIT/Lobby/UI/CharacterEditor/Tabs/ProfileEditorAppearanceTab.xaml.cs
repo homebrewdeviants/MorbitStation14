@@ -188,7 +188,7 @@ public sealed partial class ProfileEditorAppearanceTab : BoxContainer
             SexButton.SelectId((int)sexes[0]);
     }
 
-    public void UpdateSpeciesGuidebookIcon()
+    private void UpdateSpeciesGuidebookIcon()
     {
         SpeciesInfoButton.StyleClasses.Clear();
         var species = _profile?.Species;
