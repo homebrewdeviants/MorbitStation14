@@ -6,7 +6,7 @@ namespace Content.Shared.IoC
 {
     public static class SharedContentIoC
     {
-        public static void Register()
+        public static void Register(IDependencyCollection deps)
         {
             IoCManager.Register<MarkingManager, MarkingManager>();
             IoCManager.Register<ContentLocalizationManager, ContentLocalizationManager>();
@@ -14,6 +14,8 @@ namespace Content.Shared.IoC
             // MORBIT
             IoCManager.Register<NameSchemeManager, NameSchemeManager>();
             // END MORBIT
+            deps.Register<MarkingManager, MarkingManager>();
+            deps.Register<ContentLocalizationManager, ContentLocalizationManager>();
         }
     }
 }
