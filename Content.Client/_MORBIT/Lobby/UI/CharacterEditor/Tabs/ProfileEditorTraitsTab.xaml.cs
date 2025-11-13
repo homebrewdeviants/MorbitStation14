@@ -96,7 +96,7 @@ public sealed partial class ProfileEditorTraitsTab : BoxContainer
             {
                 Text = Loc.GetString(category.Name),
                 Margin = new Thickness(0, 10, 0, 0),
-                StyleClasses = { StyleBase.StyleClassLabelHeading },
+                StyleClasses = { StyleClass.LabelHeading },
             });
         }
 
